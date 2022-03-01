@@ -1,0 +1,8 @@
+
+
+#set(VULKAN_INCLUDE ${CMAKE_CURRENT_SOURCE_DIR}/vulkan CACHE PATH INTERNAL)
+set(GLFW_INCLUDE ${CAMAKE_CURRENT_SOURCE_DIR}/glfw CACHE PATH INTERNAL)
+set(GLM_INCLUDE ${CMAKE_CURRENT_SOURCE_DIR}/glm CACHE PATH INTERNAL)
+add_subdirectory(glfw)
+add_subdirectory(glm)
+add_subdirectory(libassimp)
