@@ -1,6 +1,6 @@
 
 #include<VkCommandBufferMgr.h>
-
+#include<assert.h>
 CommdBufferMgr::CommdBufferMgr()
 {
 }
@@ -10,14 +10,14 @@ CommdBufferMgr::~CommdBufferMgr()
 }
 void CommdBufferMgr::allocCommandBuffer(const VkDevice* device, 
 										const VkCommandPool cmdPoll, 
-										const std::vector<VkCommandBuffer>& cmdBuf,
+										 std::vector<VkCommandBuffer>& cmdBuf,
 										VkCommandBufferAllocateInfo* inCmdBufInfo)
 {
 	VkResult res;
 	// 如果用户指定了分配内存的方式信息 则采用指定的
 	if (inCmdBufInfo)
 	{
-		res = vkAllocateCommandBuffers(device,inCmdBufInfo, cmdBuf.data());
+		res = vkAllocateCommandBuffers(*device,inCmdBufInfo, cmdBuf.data());
 		assert(res==VK_SUCCESS);
 		return;
 	}
@@ -30,8 +30,8 @@ void CommdBufferMgr::allocCommandBuffer(const VkDevice* device,
 	cmdInfo.level = VK_COMMAND_BUFFER_LEVEL_PRIMARY;
 
 	//分配空间
-	res = vkAllocateCommandBuffers(device,&cmdInfo, cmdBuf.data());
-	assert(res==VK_SUCCESS)
+	res = vkAllocateCommandBuffers(*device,&cmdInfo, cmdBuf.data());
+	assert(res == VK_SUCCESS);
 }
 void CommdBufferMgr::beginCommandBuffer(VkCommandBuffer cmdBuf, 
 										VkCommandBufferBeginInfo* inCmdBufInfo)
@@ -41,7 +41,7 @@ void CommdBufferMgr::beginCommandBuffer(VkCommandBuffer cmdBuf,
 	if (inCmdBufInfo)
 	{
 		res = vkBeginCommandBuffer(cmdBuf,inCmdBufInfo);
-		assert(res == VK_SUCCESS)
+		assert(res == VK_SUCCESS);
 			return;
 	}
 	//否则我们需要使用默认的方案
@@ -58,11 +58,11 @@ void CommdBufferMgr::beginCommandBuffer(VkCommandBuffer cmdBuf,
 	VkCommandBufferBeginInfo cmdBufInfo = {};
 	cmdBufInfo.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_BEGIN_INFO;
 	cmdBufInfo.pNext = nullptr;
-	cmdBufInfo.pInheritanceInfo = cmdBufInheritInfo;
+	cmdBufInfo.pInheritanceInfo = &cmdBufInheritInfo;
 	cmdBufInfo.flags=0;
 
 	res = vkBeginCommandBuffer(cmdBuf, &cmdBufInfo);
-	assert(res==VK_SUCCESS)
+	assert(res == VK_SUCCESS);
 }
 void CommdBufferMgr::endCommandBuffer(VkCommandBuffer cmdBuf)
 {
@@ -70,7 +70,7 @@ void CommdBufferMgr::endCommandBuffer(VkCommandBuffer cmdBuf)
 	assert(res==VK_SUCCESS);
 }
 void CommdBufferMgr::submitCommandBuffer(const VkQueue& queue,
-										 const std::vector<VkCommandBuffer>& cmdBufList,
+										 std::vector<VkCommandBuffer>& cmdBufList,
 										 const VkSubmitInfo* inSubmitInfo,
 										 const VkFence& fence)
 {
@@ -94,9 +94,8 @@ void CommdBufferMgr::submitCommandBuffer(const VkQueue& queue,
 	submitInfo.waitSemaphoreCount = 0;
 	submitInfo.signalSemaphoreCount = 0;
 
-	res = vkQueueSubmit(queue, 1, , &submitInfo, fence);
+	res = vkQueueSubmit(queue, 1, &submitInfo, fence);
 	assert(res == VK_SUCCESS);
 	res = vkQueueWaitIdle(queue);
 	assert(res == VK_SUCCESS);
 }
-1

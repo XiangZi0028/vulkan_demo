@@ -1,4 +1,6 @@
 #pragma once
+#include<vulkan/vulkan.h>
+#include<vector>
 class CommdBufferMgr
 {
 public:
@@ -7,7 +9,7 @@ public:
 	//从指令池分配内存到指令缓存
 	static void allocCommandBuffer(const VkDevice* device, 
 								   const VkCommandPool cmdPoll, 
-								  const std::vector<VkCommandBuffer>& cmdBuf,
+								  std::vector<VkCommandBuffer>& cmdBuf,
 								   VkCommandBufferAllocateInfo* inCmdBufInfo = nullptr);
 	//开始进行指令缓存的录制
 	static void beginCommandBuffer(VkCommandBuffer cmdBuf, 
@@ -16,7 +18,7 @@ public:
 	static void endCommandBuffer(VkCommandBuffer cmdBuf);
 	//将指令缓存提交到执行部分
 	static void submitCommandBuffer(const VkQueue &queue,
-									const std::vector<VkCommandBuffer>& cmdBufList,
+									std::vector<VkCommandBuffer>& cmdBufList,
 									const VkSubmitInfo* inSubmitInfo = nullptr,
 									const VkFence& fence = VK_NULL_HANDLE);
 private:

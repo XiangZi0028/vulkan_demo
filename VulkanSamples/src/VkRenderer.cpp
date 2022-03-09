@@ -11,7 +11,7 @@ void VulkanRender::initialize()
 	createPresentationWindow(500, 500);
 
 	//初始化交换链
-	_swapChainObj->initializeSwapChain();
+	//_swapChainObj->initializeSwapChain();
 
 	//创建指令缓存池，因为我们需要用到指令缓存
 	createCmdPool();
@@ -123,7 +123,7 @@ void VulkanRender::buildSwapChaintAndDepthImg()
 	//获取指令提交对应的队列
 	_device->getDeviceQueue();
 	//创建交换链，获取颜色图对象
-	_swapChainObj->createSwapChain();
+	//_swapChainObj->createSwapChain();
 	//创建深度图
 	createDepthImg();
 }
