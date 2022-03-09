@@ -1,5 +1,7 @@
 #pragma once
-
+#include <vulkan/vulkan.h>
+#include<iostream>
+#include<vector>
 /*
 * 每个交换链视图的图像对象(image)和使用接口(view)
 */
