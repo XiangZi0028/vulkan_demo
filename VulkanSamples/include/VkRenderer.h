@@ -23,10 +23,11 @@ struct DepthAttachment
 * 如：设备、交换链、流水线等
 * 应用程序可以有多个渲染窗口，每个Renderer负责维护一个独立的展示窗口以及所有相关的资源
 */
+class VulkanSwapChain;
 class VulkanRender
 {
 public:
-	VulkanRender(std::shared_ptr<VulkanApplication> app, std::shared_ptr<VulkanDevice> deviceObj) :
+	VulkanRender(VulkanApplication *app, VulkanDevice* deviceObj) :
 		_application(app),
 		_device(deviceObj) {};
 
@@ -65,10 +66,10 @@ public:
 	void buildSwapChaintAndDepthImg();
 private:
 	//类的管理者成员
-	std::shared_ptr<VulkanSwapChain> _swapChainObj;
-	std::shared_ptr<VulkanApplication> _application;
+	VulkanSwapChain* _swapChainObj;
+	VulkanApplication* _application;
 	//与这个展示层关联的设备对象
-	std::shared_ptr<VulkanDevice> _device;
+	VulkanDevice *_device;
 
 public: 
 	HINSTANCE _connection;

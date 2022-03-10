@@ -2,6 +2,8 @@
 #include <vulkan/vulkan.h>
 #include<iostream>
 #include<vector>
+#include<VkApplication.h>
+#include<VkRenderer.h>
 /*
 * 每个交换链视图的图像对象(image)和使用接口(view)
 */
@@ -10,6 +12,10 @@ struct SwapChainBuffer
 	VkImage image;
 	VkImageView view;
 };
+
+//前置声明
+
+class VulkanRender;
 
 class VulkanSwapChain
 {
@@ -43,6 +49,10 @@ public:
 	uint32_t _currentColorBufIdx;
 	//图像格式
 	VkFormat _format;
+
+	PFN_vkQueuePresentKHR		fpQueuePresentKHR;
+	PFN_vkAcquireNextImageKHR	fpAcquireNextImageKHR;
+
 private:
 	//保存图像表面属性
 	VkSurfaceCapabilitiesKHR _surfaceCapabilities;
@@ -60,5 +70,20 @@ private:
 	//获取到的交换链颜色对象
 	std::vector<VkImage> _swapChainImgs;
 	std::vector<VkSurfaceFormatKHR> _surfaceFormat;
+	
+	VulkanApplication* _appObj;
+	VulkanRender* _rendererObj;
+
+
+	PFN_vkGetPhysicalDeviceSurfaceSupportKHR		fpGetPhysicalDeviceSurfaceSupportKHR;
+	PFN_vkGetPhysicalDeviceSurfaceCapabilitiesKHR	fpGetPhysicalDeviceSurfaceCapabilitiesKHR;
+	PFN_vkGetPhysicalDeviceSurfaceFormatsKHR		fpGetPhysicalDeviceSurfaceFormatsKHR;
+	PFN_vkGetPhysicalDeviceSurfacePresentModesKHR	fpGetPhysicalDeviceSurfacePresentModesKHR;
+	PFN_vkDestroySurfaceKHR							fpDestroySurfaceKHR;
+
+	
+	PFN_vkCreateSwapchainKHR	fpCreateSwapchainKHR;
+	PFN_vkDestroySwapchainKHR	fpDestroySwapchainKHR;
+	PFN_vkGetSwapchainImagesKHR fpGetSwapchainImagesKHR;
 };
 
