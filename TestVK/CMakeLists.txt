@@ -1,8 +1,6 @@
 cmake_minimum_required(VERSION 3.10)
 project(VULKAN_T)
 set(Recipe_Name "3_0_DeviceHandshake")
-
-
 #AUTO_LOCATE_VULKAN ON/OFF
 #ON 使用cmake自动查找vulkan sdk的路径
 #OFF 手动设置Vulkan SDK的路径
@@ -45,7 +43,22 @@ else()
 	endif()
 endif()
 
-include_directories(${VULKAN_PATH}/include)
+if (NOT T_LIBRARY_OUTPUT_PATH)
+    set(T_LIBRARY_OUTPUT_PATH ${CMAKE_BINARY_DIR}/Bin)
+endif ()
 
-add_executable(testVK main.cpp  "VK/public/VKDevice.h" "VK/public/VKTexture.h" "VK/public/VKCommandBuffer.h" "VK/public/VKPipeline.h")
-target_link_libraries(testVK ${VULKAN_PATH}/lib/vulkan-1.lib)
+set(CMAKE_ARCHIVE_OUTPUT_DIRECTORY_DEBUG ${T_LIBRARY_OUTPUT_PATH})
+set(CMAKE_ARCHIVE_OUTPUT_DIRECTORY_RELEASE ${T_LIBRARY_OUTPUT_PATH})
+set(CMAKE_ARCHIVE_OUTPUT_DIRECTORY_RELWITHDEBINFO ${T_LIBRARY_OUTPUT_PATH})
+
+set(CMAKE_RUNTIME_OUTPUT_DIRECTORY_DEBUG ${T_LIBRARY_OUTPUT_PATH})
+set(CMAKE_RUNTIME_OUTPUT_DIRECTORY_RELEASE ${T_LIBRARY_OUTPUT_PATH})
+set(CMAKE_RUNTIME_OUTPUT_DIRECTORY_RELWITHDEBINFO ${T_LIBRARY_OUTPUT_PATH})
+link_directories(${T_LIBRARY_OUTPUT_PATH})
+
+message("Release mode:${T_LIBRARY_OUTPUT_PATH}")
+
+include_directories(${VULKAN_PATH}/include ${PROJECT_SOURCE_DIR}/../3rd/glfw/include ${PROJECT_SOURCE_DIR}/VK/public)
+link_directories(${VULKAN_PATH}/lib ${CMAKE_CURRENT_BINARY_DIR}/Bin})
+add_executable(testVK main.cpp  "VK/public/GVKDevice.h" "VK/public/GVKTexture.h" "VK/public/GVKCommandBuffer.h" "VK/public/GVKPipeline.h" "VK/private/GVKInstance.cpp" "VK/private/GVKDevice.cpp")
+target_link_libraries(testVK vulkan-1.lib ${CMAKE_CURRENT_BINARY_DIR}/{CMAKE_BINARY_DIR}/Bin/glfw3.lib)
