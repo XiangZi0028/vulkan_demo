@@ -20,7 +20,7 @@ class VulkanRender;
 class VulkanSwapChain
 {
 public:
-	VulkanSwapChain();
+	VulkanSwapChain(VulkanRender* renderer) :_rendererObj(renderer) {};
 	~VulkanSwapChain();
 
 	void initializeSwapChain();

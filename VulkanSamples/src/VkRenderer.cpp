@@ -1,6 +1,16 @@
 #include<VkRenderer.h>
 #include <assert.h>
 
+VulkanRender::VulkanRender(VulkanApplication* app, VulkanDevice* device)
+{
+	assert(app != nullptr && device != nullptr);
+	_application = app;
+	_device = device;
+	_application->_rendererObj = this;
+
+	_swapChainObj = new VulkanSwapChain(this);
+}
+
 VulkanRender::~VulkanRender()
 {
 }
@@ -79,6 +89,8 @@ void VulkanRender::createPresentationWindow(const int& windowWith, const int& wi
 		exit(1);
 	}
 	SetWindowLongPtr(_window, GWLP_USERDATA, (LONG_PTR)&_application);
+
+	getSwapChain();
 }
 
 void VulkanRender::setImageLayout(VkImage, VkImageAspectFlags aspectMask, VkImageLayout oldImageLayout, VkImageLayout newImageLayout, VkAccessFlagBits srcAccessMask, const VkCommandBuffer& cmdBuf)

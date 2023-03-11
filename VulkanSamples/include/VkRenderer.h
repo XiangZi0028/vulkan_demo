@@ -27,9 +27,7 @@ class VulkanSwapChain;
 class VulkanRender
 {
 public:
-	VulkanRender(VulkanApplication *app, VulkanDevice* deviceObj) :
-		_application(app),
-		_device(deviceObj) {};
+	VulkanRender(VulkanApplication* app, VulkanDevice* deviceObj);
 
 
 	~VulkanRender();
@@ -64,6 +62,8 @@ public:
 	void createSwapChain();
 	void createDepthImg();
 	void buildSwapChaintAndDepthImg();
+
+	VulkanSwapChain& getSwapChain() { return *_swapChainObj; };
 private:
 	//类的管理者成员
 	VulkanSwapChain* _swapChainObj;

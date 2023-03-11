@@ -15,11 +15,21 @@
         exit(-1);																			\
     }																						\
 }
-VulkanSwapChain::VulkanSwapChain()
+
+
+VulkanSwapChain::~VulkanSwapChain()
 {
 }
 
-VulkanSwapChain::~VulkanSwapChain()
+void VulkanSwapChain::initializeSwapChain()
+{
+}
+
+void VulkanSwapChain::createSwapChain()
+{
+}
+
+void VulkanSwapChain::destroySwapChain()
 {
 }
 
@@ -44,6 +54,10 @@ VkResult VulkanSwapChain::createSwapChainExtensions()
 
 }
 
+void VulkanSwapChain::getSupportedFormats()
+{
+}
+
 VkResult VulkanSwapChain::createSurface()
 {
 	VkResult res;
@@ -57,4 +71,21 @@ VkResult VulkanSwapChain::createSurface()
 	createInfo.hwnd = _rendererObj->_window;
 	res = vkCreateWin32SurfaceKHR(instance, &createInfo, nullptr, &_surface);
 	return res;
+}
+
+uint32_t VulkanSwapChain::getGraphicsQueueWithPresentationSupport()
+{
+	return uint32_t();
+}
+
+void VulkanSwapChain::managePresentMode()
+{
+}
+
+void VulkanSwapChain::createSwapChainColorBufferImages()
+{
+}
+
+void VulkanSwapChain::createColorImageView(const VkCommandBuffer cmdbuf)
+{
 }

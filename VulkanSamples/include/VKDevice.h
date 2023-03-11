@@ -28,7 +28,8 @@ public:
 	VkPhysicalDevice* _gpu;//物理设备
 	VkPhysicalDeviceProperties _gpuProps;//物理设备属性
 	VkPhysicalDeviceMemoryProperties _memoryProps;//
-	
+	VkPhysicalDeviceFeatures _gpuFeatures;
+
 	//队列相关属性
 	VkQueue _queue;//vk 队列对象
 	std::vector<VkQueueFamilyProperties> _queueFamilyProps;//保存物理设备暴露的所有队列

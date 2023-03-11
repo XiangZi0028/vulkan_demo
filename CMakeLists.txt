@@ -6,4 +6,5 @@ if (NOT T_LIBRARY_OUTPUT_PATH)
 endif ()
 
 add_subdirectory(3rd)
-add_subdirectory(VulkanSamples)
+#add_subdirectory(VulkanSamples)
+add_subdirectory(TestVK)

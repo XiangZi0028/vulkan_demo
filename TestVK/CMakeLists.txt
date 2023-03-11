@@ -47,5 +47,5 @@ endif()
 
 include_directories(${VULKAN_PATH}/include)
 
-add_executable(testVK main.cpp )
+add_executable(testVK main.cpp  "VK/public/VKDevice.h" "VK/public/VKTexture.h" "VK/public/VKCommandBuffer.h" "VK/public/VKPipeline.h")
 target_link_libraries(testVK ${VULKAN_PATH}/lib/vulkan-1.lib)

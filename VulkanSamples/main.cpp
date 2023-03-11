@@ -16,33 +16,11 @@ std::vector<const char*> deviceExtensionNames = {
 int main(int argc,char **argv)
 {
 	VulkanApplication* appObj = VulkanApplication::GetInstance();
-	appObj->initialize();
+	appObj->setInstanceExtensionNames(instanceExtensionNames);
+	appObj->setLayerNames(layerNames);
+	appObj->initialize(0);
+	VulkanRender* Renderer= new VulkanRender(appObj,appObj->_deviceObj);
+	Renderer->createPresentationWindow(500, 500);
+
 	return 0;
-}
-VkResult VulkanApplication::initialize()
-{
-	char title[] = "Hello World!!!";
-
-	if (debugFlag)
-	{
-		_instanceObj._layerExtension.areLayersSupported(layerNames);
-	}
-
-	//创建vulkan实例 并启用指定的层和扩展的名称
-	createVulkanInstance(layerNames, instanceExtensionNames, title);
-
-	if (debugFlag) {
-		_instanceObj._layerExtension.createDebugReportCallback();
-	}
-
-	//获取系统中物理设备的列表
-	std::vector<VkPhysicalDevice> gpuList;
-	enumeratePhysicalDevices(gpuList);
-
-	//例子中只用到了第一个可用的设备
-	if (gpuList.size() >= 0)
-	{
-		handShakeWithDevice(&gpuList[0], layerNames, deviceExtensionNames);
-	}
-	return VK_SUCCESS;
 }
