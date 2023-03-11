@@ -5,13 +5,14 @@ GVKDevice::GVKDevice(GVKInstance Instance)
 {
 	EnumerateGPUs();
 	SelectTargetGPU();
+	mQueue = make_shared<GVKQueue>(new GVKQueue(this));
 }
 
 GVKDevice::~GVKDevice()
 {
 }
 
-VkPhysicalDevice GVKDevice::GetCurrentDevice() const
+VkPhysicalDevice GVKDevice::GetCurrentGPU() const
 {
 	if (mGPUs.size() == 0 || mCurrentGPUIndex == -1 || mCurrentGPUIndex >= mGPUs.size())
 	{
