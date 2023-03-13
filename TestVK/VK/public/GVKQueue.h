@@ -1,6 +1,6 @@
 #pragma once
 #include <vulkan/vulkan.hpp>
-#include <GVKDevice.h>
+#include "GVKDevice.h"
 #include<optional>
 #include <iostream>
 using namespace std;
@@ -14,11 +14,18 @@ struct QueueFamilyIndices {
 class GVKQueue : public shared_ptr<GVKQueue>
 {
 public:
-	void InitGVKQueue();
 	GVKQueue(GVKDevice* Device);
 	~GVKQueue();
-
+	void InitGVKQueue();
+	QueueFamilyIndices GetQueueFamilyIndices() const;
+	void CreateDeviceQueue();
+	VkQueue GetGraphicQueue() { return mGraphicQueue; };
+	VkQueue GetTransferQueue() { return mTransferQueue; };
+	VkQueue GetCompuyeQueue() { return mComputeQueue; }
 private:
+	VkQueue mGraphicQueue;
+	VkQueue mTransferQueue;
+	VkQueue mComputeQueue;
 	std::vector<VkQueueFamilyProperties> mQueueFamilyProperties;
 	GVKDevice* mDevice;
 	QueueFamilyIndices mQueueFamilyIndics;

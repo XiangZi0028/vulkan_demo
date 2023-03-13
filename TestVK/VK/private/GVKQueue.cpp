@@ -16,6 +16,17 @@ void GVKQueue::InitGVKQueue()
 	GetGPUQueueFamilyProperties();
 	InitQueueFamilyIndices();
 }
+
+QueueFamilyIndices GVKQueue::GetQueueFamilyIndices() const
+{
+	return this->mQueueFamilyIndics;
+}
+
+void GVKQueue::CreateDeviceQueue()
+{
+	vkGetDeviceQueue(mDevice->GetVKDevice(), mQueueFamilyIndics.GraphicsFamily.value(), 0, &mGraphicQueue);
+}
+
 void GVKQueue::GetGPUQueueFamilyProperties()
 {
 	uint32_t QueueFamilyCount = 0;

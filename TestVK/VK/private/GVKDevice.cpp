@@ -1,11 +1,13 @@
 #include<GVKDevice.h>
 
-GVKDevice::GVKDevice(GVKInstance Instance)
+GVKDevice::GVKDevice(GVKInstance* Instance)
 	:mInstance(Instance)
 {
 	EnumerateGPUs();
 	SelectTargetGPU();
-	mQueue = make_shared<GVKQueue>(new GVKQueue(this));
+	mQueue = new GVKQueue(this);
+	CreateLogicalDevice();
+	mQueue->CreateDeviceQueue();
 }
 
 GVKDevice::~GVKDevice()
@@ -24,10 +26,15 @@ VkPhysicalDevice GVKDevice::GetCurrentGPU() const
 	}
 }
 
+VkDevice GVKDevice::GetVKDevice() const
+{
+	return mDevice;
+}
+
 void GVKDevice::EnumerateGPUs() 
 {
 	uint32_t GPUCount;
-	vkEnumeratePhysicalDevices(mInstance.GetVKInstance(), &GPUCount, nullptr);
+	vkEnumeratePhysicalDevices(mInstance->GetVKInstance(), &GPUCount, nullptr);
 	if (GPUCount == 0)
 	{
 		throw std::runtime_error("Failed to find GPUs with Vulkan support!");
@@ -35,7 +42,7 @@ void GVKDevice::EnumerateGPUs()
 	else
 	{
 		mGPUs.resize(GPUCount);
-		vkEnumeratePhysicalDevices(mInstance.GetVKInstance(), &GPUCount, mGPUs.data());
+		vkEnumeratePhysicalDevices(mInstance->GetVKInstance(), &GPUCount, mGPUs.data());
 	}
 }
 
@@ -94,4 +101,58 @@ int	GVKDevice::RateDeviceSuitability(VkPhysicalDevice* GPU) const
 	}
 
 	return score;
+}
+
+
+void GVKDevice::CreateLogicalDevice()
+{
+	BuildVkDeviceQueueCreateInfo();
+	VkDeviceCreateInfo CreateInfo{};
+	CreateInfo.sType = VK_STRUCTURE_TYPE_DEVICE_CREATE_INFO;
+	CreateInfo.pQueueCreateInfos = mQueueCreateInfos.size() > 0 ? mQueueCreateInfos.data() : nullptr;
+	CreateInfo.queueCreateInfoCount = static_cast<uint32_t>(mQueueCreateInfos.size());
+	CreateInfo.pEnabledFeatures = &mGPUFeatures;
+	if (mInstance->bEnableExtensions)
+	{
+		/*	CreateInfo.enabledExtensionCount = mInstance->GetExtensions().size();
+			CreateInfo.ppEnabledExtensionNames = mInstance->GetExtensions().data();*/
+		CreateInfo.enabledExtensionCount = 0;
+		CreateInfo.ppEnabledExtensionNames = nullptr;
+	}
+	else
+	{
+		CreateInfo.enabledExtensionCount = 0;
+		CreateInfo.ppEnabledExtensionNames = nullptr;
+	}
+	if (mInstance->bEnableValidationLayers)
+	{
+		CreateInfo.enabledLayerCount = mInstance->GetValidationLayers().size();
+		CreateInfo.ppEnabledLayerNames = mInstance->GetValidationLayers().data();
+	}
+	else
+	{
+		CreateInfo.enabledLayerCount = 0;
+		CreateInfo.ppEnabledLayerNames = nullptr;
+	}
+	if (vkCreateDevice(GetCurrentGPU(), &CreateInfo, nullptr, &mDevice) != VK_SUCCESS)
+	{
+		throw std::runtime_error("Faild to Creat logical device!");
+	}
+	
+}
+
+void GVKDevice::BuildVkDeviceQueueCreateInfo()
+{
+	float& CurrentQueuePriority = mQueuePrioritys.emplace_back(1.0f);
+	VkDeviceQueueCreateInfo QueueCreateInfo{};
+	QueueCreateInfo.sType = VK_STRUCTURE_TYPE_DEVICE_QUEUE_CREATE_INFO;
+	QueueCreateInfo.queueFamilyIndex = mQueue->GetQueueFamilyIndices().GraphicsFamily.value();
+	QueueCreateInfo.queueCount = 1;
+	QueueCreateInfo.pQueuePriorities =  &CurrentQueuePriority;
+	mQueueCreateInfos.push_back(QueueCreateInfo);
+}
+
+void GVKDevice::Cleanup()
+{
+	vkDestroyDevice(mDevice,nullptr);
 }

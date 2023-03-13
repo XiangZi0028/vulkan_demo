@@ -1,13 +1,16 @@
 #include "GVKInstance.h"
 
-
-GVKInstance::GVKInstance()
+GVKInstance::GVKInstance(GLFWwindow* Window)
+	:mWindow(Window)
 {
 	InitValidationLayers();
 	EnumerateInstanceExtensionProperties();
 	EnumerateInstanceLayerProperties();
 	CheckValidationLayersSupport();
 	CreateVKInstance();
+	mGVKDevice = new GVKDevice(this);
+	mGVKSurfaceKHR = new GVKSurfaceKHR();
+	mGVKSurfaceKHR->CreatePlatformSurfaceKHR(mInstance, mWindow);
 }
 
 GVKInstance::~GVKInstance()
@@ -89,8 +92,10 @@ void GVKInstance::CreateVKInstance()
 	}
 }
 
-void GVKInstance::DestroyGVKInstance()
+void GVKInstance::Cleanup()
 {
+	mGVKDevice->Cleanup();
+	mGVKSurfaceKHR->Cleanup(mInstance);
 	vkDestroyInstance(mInstance, nullptr);
 }
 

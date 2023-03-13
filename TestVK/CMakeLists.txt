@@ -67,5 +67,5 @@ message("Release mode:${T_LIBRARY_OUTPUT_PATH}")
 
 include_directories(${VULKAN_PATH}/include ${PROJECT_SOURCE_DIR}/../3rd/glfw/include ${PROJECT_SOURCE_DIR}/VK/public)
 link_directories(${VULKAN_PATH}/lib ${CMAKE_CURRENT_BINARY_DIR}/Bin})
-add_executable(testVK main.cpp  "VK/public/GVKDevice.h" "VK/public/GVKTexture.h" "VK/public/GVKCommandBuffer.h" "VK/public/GVKPipeline.h" "VK/private/GVKInstance.cpp" "VK/private/GVKDevice.cpp" "VK/public/GVKQueue.h" "VK/private/GVKQueue.cpp")
+add_executable(testVK main.cpp  "VK/public/GVKDevice.h" "VK/public/GVKTexture.h" "VK/public/GVKCommandBuffer.h" "VK/public/GVKPipeline.h" "VK/private/GVKInstance.cpp" "VK/private/GVKDevice.cpp" "VK/public/GVKQueue.h" "VK/private/GVKQueue.cpp" "VK/public/GVKSurfaceKHR.h" "VK/private/GVKSurfaceKHR.cpp" "VK/public/Application.h" "VK/private/Application.cpp")
 target_link_libraries(testVK vulkan-1.lib ${CMAKE_CURRENT_BINARY_DIR}/{CMAKE_BINARY_DIR}/Bin/glfw3.lib)
