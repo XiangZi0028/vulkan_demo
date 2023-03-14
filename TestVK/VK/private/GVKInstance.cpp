@@ -3,14 +3,16 @@
 GVKInstance::GVKInstance(GLFWwindow* Window)
 	:mWindow(Window)
 {
-	InitValidationLayers();
+	InitInstanceValidationLayers();
+	InitRequiredInstanceExtensions();
 	EnumerateInstanceExtensionProperties();
 	EnumerateInstanceLayerProperties();
 	CheckValidationLayersSupport();
+	CheckExtensionsSupports();
 	CreateVKInstance();
-	mGVKDevice = new GVKDevice(this);
 	mGVKSurfaceKHR = new GVKSurfaceKHR();
 	mGVKSurfaceKHR->CreatePlatformSurfaceKHR(mInstance, mWindow);
+	mGVKDevice = new GVKDevice(this);
 }
 
 GVKInstance::~GVKInstance()
@@ -41,16 +43,32 @@ bool GVKInstance::CheckValidationLayersSupport()
 	}
 }
 
+bool GVKInstance::CheckExtensionsSupports()
+{
+	for (const char* layerName : mInstanceExtensions) {
+		bool ExtensionFound = false;
+		for (const auto& Extension : mInstanceExtensions_VK) {
+			if (strcmp(layerName, Extension.extensionName) == 0) {
+				ExtensionFound = true;
+				break;
+			}
+		}
+		if (!ExtensionFound) {
+			throw std::runtime_error("Validation layers requested, but not available!");
+			return false;
+		}
+	}
+}
 
 void GVKInstance::EnumerateInstanceExtensionProperties()
 {
 	uint32_t extensionCount = 0;
 	vkEnumerateInstanceExtensionProperties(nullptr, &extensionCount, nullptr);
-	mExtensions_VK.resize(extensionCount);
-	vkEnumerateInstanceExtensionProperties(nullptr, &extensionCount, mExtensions_VK.data());
+	mInstanceExtensions_VK.resize(extensionCount);
+	vkEnumerateInstanceExtensionProperties(nullptr, &extensionCount, mInstanceExtensions_VK.data());
 
 	std::cout << "available extensions:\n";
-	for (const auto& extension : mExtensions_VK) {
+	for (const auto& extension : mInstanceExtensions_VK) {
 		std::cout << '\t' << extension.extensionName << '\n';
 	}
 }
@@ -99,7 +117,16 @@ void GVKInstance::Cleanup()
 	vkDestroyInstance(mInstance, nullptr);
 }
 
-void GVKInstance::InitValidationLayers()
+void GVKInstance::InitInstanceValidationLayers()
 {
-	//mValidationLayers.insert(mValidationLayers.begin(),"VK_LAYER_KHRONOS_validation");
+	//目前不支持的原因是因为我移动了VULKAN 的SDK位置，如果想放在自己的位置的需要配置
+	//VulkanSDK\1.3.231.1\Bin\vkconfig.exe
+	//不知道源码编译Vulkan的话支持不支持
+	//mValidationLayers.push_back("VK_LAYER_KHRONOS_validation");
+}
+
+void GVKInstance::InitRequiredInstanceExtensions()
+{
+	//VK_KHR_SWAPCHAIN_EXTENSION_NAME 是设备扩展
+	//mInstanceExtensions.push_back();
 }

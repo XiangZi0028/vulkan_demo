@@ -13,6 +13,7 @@ class GVKDevice;
 class GVKInstance : public shared_ptr<GVKInstance>
 {
 public:
+	GVKSurfaceKHR* mGVKSurfaceKHR;
 	bool bEnableExtensions = true;
 	bool bEnableValidationLayers = true;
 public:
@@ -20,11 +21,11 @@ public:
 	~GVKInstance();
 	VkInstance GetVKInstance();
 	bool CheckValidationLayersSupport();
+	bool CheckExtensionsSupports();
 	void Cleanup();
-	const std::vector<VkExtensionProperties>& GetExtensions()const { return mExtensions_VK; }
+	const std::vector<VkExtensionProperties>& GetExtensions()const { return mInstanceExtensions_VK; }
 	const std::vector<const char*>& GetValidationLayers()const { return mValidationLayers; }
 private:
-	GVKSurfaceKHR* mGVKSurfaceKHR;
 	GVKDevice* mGVKDevice;
 	VkInstance mInstance;
 	GLFWwindow* mWindow;
@@ -32,13 +33,19 @@ private:
 	string mEngineName;
 	uint32_t mExtensionCount_glfw = 0;
 	const char** mExtensions_glfw;
-	std::vector<VkExtensionProperties> mExtensions_VK;
+	//vk可能支持的extension属性
+	std::vector<VkExtensionProperties> mInstanceExtensions_VK;
+	//vk可能支持的layer属性
 	std::vector<VkLayerProperties> mAvailableLayers_VK;
+	//需要用到的extension属性
+	std::vector<const char*> mInstanceExtensions;
+	//需要用到的Lyaer属性
 	std::vector<const char*> mValidationLayers;
 private:
 	void EnumerateInstanceExtensionProperties();
 	void EnumerateInstanceLayerProperties();
 	void CreateVKInstance();
-	void InitValidationLayers();
+	void InitInstanceValidationLayers();
+	void InitRequiredInstanceExtensions();
 };
 

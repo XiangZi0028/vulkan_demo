@@ -9,6 +9,7 @@ struct QueueFamilyIndices {
 	std::optional<uint32_t> TransferFamily;
 	std::optional<uint32_t> GraphicsFamily;
 	std::optional<uint32_t> ComputeFamily;
+	std::optional<uint32_t> PresentFamily;
 };
 
 class GVKQueue : public shared_ptr<GVKQueue>
@@ -26,6 +27,7 @@ private:
 	VkQueue mGraphicQueue;
 	VkQueue mTransferQueue;
 	VkQueue mComputeQueue;
+	VkQueue mPresentQueue;
 	std::vector<VkQueueFamilyProperties> mQueueFamilyProperties;
 	GVKDevice* mDevice;
 	QueueFamilyIndices mQueueFamilyIndics;

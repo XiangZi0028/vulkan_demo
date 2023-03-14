@@ -1,9 +1,10 @@
 #include<GVKDevice.h>
-
+#include<set>
 GVKDevice::GVKDevice(GVKInstance* Instance)
 	:mInstance(Instance)
 {
 	EnumerateGPUs();
+	InitRequiredDeviceExtensions();
 	SelectTargetGPU();
 	mQueue = new GVKQueue(this);
 	CreateLogicalDevice();
@@ -44,14 +45,22 @@ void GVKDevice::EnumerateGPUs()
 		mGPUs.resize(GPUCount);
 		vkEnumeratePhysicalDevices(mInstance->GetVKInstance(), &GPUCount, mGPUs.data());
 	}
+	for (int Index = 0; Index < mGPUs.size(); Index++)
+	{
+		pair<int, std::vector<VkExtensionProperties>> GPUExtension;
+		GPUExtension.first = Index;
+		mAvailableDeviceExtensions_GPUs.push_back(GPUExtension);
+		InitAvailableDeviceExtensions(Index);
+	}
 }
 
 void GVKDevice::SelectTargetGPU()
 {
 	int MaxScore = -1;
 	for (uint32_t Index = 0; Index < mGPUs.size(); Index++) {
-		if (auto Score = RateDeviceSuitability(&mGPUs[Index]))
+		if (auto Score = RateDeviceSuitability(Index))
 		{
+			
 			if (Score > MaxScore)
 			{
 				mCurrentGPUIndex = Index;
@@ -77,11 +86,12 @@ void GVKDevice::GetGPUPropertiseAndFeatures(const VkPhysicalDevice* GPU, VkPhysi
 	vkGetPhysicalDeviceFeatures(*GPU, &DeviceFeatures);
 }
 
-int	GVKDevice::RateDeviceSuitability(VkPhysicalDevice* GPU) const
+int	GVKDevice::RateDeviceSuitability(int GPUIndex) const
 {
 	VkPhysicalDeviceProperties DeviceProperties;
 	VkPhysicalDeviceFeatures DeviceFeatures;
-	if (!IsGPUSuitable(GPU, &DeviceProperties, &DeviceFeatures))
+
+	if (!IsGPUSuitable(&mGPUs[GPUIndex], &DeviceProperties, &DeviceFeatures) || !CheckDeviceExtensionSupport(GPUIndex))
 	{
 		return 0;
 	}
@@ -106,6 +116,7 @@ int	GVKDevice::RateDeviceSuitability(VkPhysicalDevice* GPU) const
 
 void GVKDevice::CreateLogicalDevice()
 {
+	
 	BuildVkDeviceQueueCreateInfo();
 	VkDeviceCreateInfo CreateInfo{};
 	CreateInfo.sType = VK_STRUCTURE_TYPE_DEVICE_CREATE_INFO;
@@ -114,10 +125,9 @@ void GVKDevice::CreateLogicalDevice()
 	CreateInfo.pEnabledFeatures = &mGPUFeatures;
 	if (mInstance->bEnableExtensions)
 	{
-		/*	CreateInfo.enabledExtensionCount = mInstance->GetExtensions().size();
-			CreateInfo.ppEnabledExtensionNames = mInstance->GetExtensions().data();*/
-		CreateInfo.enabledExtensionCount = 0;
-		CreateInfo.ppEnabledExtensionNames = nullptr;
+			CreateInfo.enabledExtensionCount = mRequiredDeviceExtensions.size();
+			CreateInfo.ppEnabledExtensionNames = mRequiredDeviceExtensions.data();
+
 	}
 	else
 	{
@@ -143,16 +153,59 @@ void GVKDevice::CreateLogicalDevice()
 
 void GVKDevice::BuildVkDeviceQueueCreateInfo()
 {
-	float& CurrentQueuePriority = mQueuePrioritys.emplace_back(1.0f);
-	VkDeviceQueueCreateInfo QueueCreateInfo{};
-	QueueCreateInfo.sType = VK_STRUCTURE_TYPE_DEVICE_QUEUE_CREATE_INFO;
-	QueueCreateInfo.queueFamilyIndex = mQueue->GetQueueFamilyIndices().GraphicsFamily.value();
-	QueueCreateInfo.queueCount = 1;
-	QueueCreateInfo.pQueuePriorities =  &CurrentQueuePriority;
-	mQueueCreateInfos.push_back(QueueCreateInfo);
+	std::set<uint32_t> uniqueQueueFamilies = { mQueue->GetQueueFamilyIndices().PresentFamily.value(), mQueue->GetQueueFamilyIndices().GraphicsFamily.value() };
+	for (auto QueueFamilyIndex : uniqueQueueFamilies)
+	{
+		float& CurrentQueuePriority = mQueuePrioritys.emplace_back(1.0f);
+		VkDeviceQueueCreateInfo QueueCreateInfo{};
+		QueueCreateInfo.sType = VK_STRUCTURE_TYPE_DEVICE_QUEUE_CREATE_INFO;
+		QueueCreateInfo.queueFamilyIndex = QueueFamilyIndex;
+		QueueCreateInfo.queueCount = 1;
+		QueueCreateInfo.pQueuePriorities = &CurrentQueuePriority;
+		mQueueCreateInfos.push_back(QueueCreateInfo);
+	}
+	
 }
 
 void GVKDevice::Cleanup()
 {
 	vkDestroyDevice(mDevice,nullptr);
+}
+
+void GVKDevice::InitAvailableDeviceExtensions(int Index)
+{
+	uint32_t extensionCount;
+	vkEnumerateDeviceExtensionProperties(mGPUs[Index] ,nullptr, &extensionCount, nullptr);
+
+	mAvailableDeviceExtensions_GPUs[Index].second.resize(extensionCount);
+	vkEnumerateDeviceExtensionProperties(mGPUs[Index], nullptr, &extensionCount, mAvailableDeviceExtensions_GPUs[Index].second.data());
+}
+
+void GVKDevice::InitRequiredDeviceExtensions()
+{
+	mRequiredDeviceExtensions.push_back(VK_KHR_SWAPCHAIN_EXTENSION_NAME);
+}
+
+bool GVKDevice::CheckDeviceExtensionSupport(int GPUIndex) const
+{
+	auto GPUExtension = mAvailableDeviceExtensions_GPUs[GPUIndex];
+	for (auto RequiredExtension : mRequiredDeviceExtensions)
+	{
+		bool bFoundExtension = false;
+		for (auto Extension : GPUExtension.second)
+		{
+			if (strcmp(Extension.extensionName, RequiredExtension))
+			{
+				bFoundExtension = true;
+			}
+		}
+		if (!bFoundExtension)
+		{
+			//throw std::runtime_error("Extension was requeired,but Device(GPU) don't support!");
+			std::cout << "GPU[" << GPUIndex << "]: Extension was requeired,but Device(GPU) don't support!" << endl;
+			break;
+			return bFoundExtension;
+		}
+	}
+	return true;
 }

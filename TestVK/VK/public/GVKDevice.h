@@ -19,6 +19,8 @@ public:
 
 	VkDevice GetVKDevice() const;
 
+	GVKInstance* mInstance;
+
 private:
 	//physicalDevieces
 	std::vector<VkPhysicalDevice> mGPUs;
@@ -26,8 +28,11 @@ private:
 	//LogicDeviece
 	VkDevice mDevice;
 	//weak_ptr<GVKInstance> mInstance;
-	GVKInstance* mInstance;
 	//显卡要求
+	//设备扩展
+	//GPUIndex Extensions
+	std::vector<pair<int, std::vector<VkExtensionProperties>>> mAvailableDeviceExtensions_GPUs;
+	std::vector<const char *> mRequiredDeviceExtensions;
 
 	//GVKQueue
 	GVKQueue* mQueue;
@@ -44,10 +49,15 @@ private:
 	
 	void GetGPUPropertiseAndFeatures(const VkPhysicalDevice* GPU, VkPhysicalDeviceProperties& DeviceProperties, VkPhysicalDeviceFeatures& DeviceFeatures) const;
 	//给显卡打分
-	int	RateDeviceSuitability(VkPhysicalDevice* GPU) const;
+	int	RateDeviceSuitability(int GPUIndex) const;
 
 	void CreateLogicalDevice();
 	
 	void BuildVkDeviceQueueCreateInfo();
 
+	void InitAvailableDeviceExtensions(int Index);
+
+	void InitRequiredDeviceExtensions();
+
+	bool CheckDeviceExtensionSupport(int GPUIndex) const;
 };

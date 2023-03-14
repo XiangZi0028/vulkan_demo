@@ -14,8 +14,8 @@ public:
 	~GVKSurfaceKHR();
 	void CreatePlatformSurfaceKHR(const VkInstance Instance, GLFWwindow* Window);
 	void Cleanup(const VkInstance Instance);
+	VkSurfaceKHR GetSUrface() { return mSurface; };
 private:
-
 	VkSurfaceKHR mSurface;
 };
 
