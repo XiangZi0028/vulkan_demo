@@ -28,3 +28,32 @@ void GVKSurfaceKHR::Cleanup(const VkInstance Instance)
 {
 	vkDestroySurfaceKHR(Instance, mSurface, nullptr);
 }
+
+void GVKSurfaceKHR::GetPhysicalDeviceSurfaceSupportInfos(VkPhysicalDevice Device)
+{
+	vkGetPhysicalDeviceSurfaceCapabilitiesKHR(Device, mSurface, &mCapabilities);
+
+	SwapChainSupportDetails& Details = SwapChainSupportDetails{};//GPUSwapchainSupportDetails.find(Device);
+	//PhysicalDevice Surface Format KHR
+	{
+		uint32_t FormatCount = 0;
+		vkGetPhysicalDeviceSurfaceFormatsKHR(Device, mSurface, &FormatCount, nullptr);
+		if (FormatCount != 0)
+		{
+			
+			Details.mFormats.resize(FormatCount);
+			vkGetPhysicalDeviceSurfaceFormatsKHR(Device, mSurface, &FormatCount, Details.mFormats.data());
+		}
+	}
+
+	//PhysicalDevice Surface PresentMode KHR
+	{
+		uint32_t PresentCount = 0;
+		vkGetPhysicalDeviceSurfacePresentModesKHR(Device, mSurface, &PresentCount, nullptr);
+		if (PresentCount != 0) 
+		{
+			Details.mPresentModes.resize(PresentCount);
+			vkGetPhysicalDeviceSurfacePresentModesKHR(Device, mSurface, &PresentCount, Details.mPresentModes.data());
+		}
+	}
+}
