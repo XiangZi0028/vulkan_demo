@@ -1,5 +1,4 @@
 #pragma once
-#include <GVKDevice.h>
 #define GLFW_INCLUDE_VULKAN
 #define VK_USE_PLATFORM_WIN32_KHR
 #include <GLFW/glfw3.h>
@@ -20,20 +19,21 @@ struct SwapChainSupportDetails
 	std::vector<VkSurfaceFormatKHR> mFormats;
 	std::vector<VkPresentModeKHR> mPresentModes;
 };
+using GPUSwapchainSupportDetailsMap = map<VkPhysicalDevice, SwapChainSupportDetails*>;
 class GVKSurfaceKHR : shared_ptr<GVKSurfaceKHR>
 {
 public:
 	GVKSurfaceKHR();
 	~GVKSurfaceKHR();
 	void CreatePlatformSurfaceKHR(const VkInstance Instance, GLFWwindow* Window);
-	void GetPhysicalDeviceSurfaceSupportInfos(VkPhysicalDevice Device);
+	SwapChainSupportDetails* GetPhysicalDeviceSurfaceSupportInfos(VkPhysicalDevice Device);
 	void Cleanup(const VkInstance Instance);
 	VkSurfaceKHR GetSUrface() { return mSurface; };
 
 public:
 
 private:
-	map<VkDevice, SwapChainSupportDetails> GPUSwapchainSupportDetails;
+	GPUSwapchainSupportDetailsMap GPUSwapchainSupportDetails;
 	VkSurfaceKHR mSurface;
 	VkSurfaceCapabilitiesKHR mCapabilities;
 	std::vector<VkSurfaceFormatKHR> mFormats;

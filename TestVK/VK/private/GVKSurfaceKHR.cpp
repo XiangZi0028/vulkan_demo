@@ -29,11 +29,22 @@ void GVKSurfaceKHR::Cleanup(const VkInstance Instance)
 	vkDestroySurfaceKHR(Instance, mSurface, nullptr);
 }
 
-void GVKSurfaceKHR::GetPhysicalDeviceSurfaceSupportInfos(VkPhysicalDevice Device)
+SwapChainSupportDetails* GVKSurfaceKHR::GetPhysicalDeviceSurfaceSupportInfos(VkPhysicalDevice Device)
 {
 	vkGetPhysicalDeviceSurfaceCapabilitiesKHR(Device, mSurface, &mCapabilities);
 
-	SwapChainSupportDetails& Details = SwapChainSupportDetails{};//GPUSwapchainSupportDetails.find(Device);
+	SwapChainSupportDetails* Details = nullptr;
+	GPUSwapchainSupportDetailsMap::iterator iter = GPUSwapchainSupportDetails.find(Device);
+	if (iter == GPUSwapchainSupportDetails.end())
+	{
+		GPUSwapchainSupportDetails[Device] = new SwapChainSupportDetails();
+		Details = GPUSwapchainSupportDetails[Device];
+		//GPUSwapchainSupportDetails.insert(GPUSwapchainSupportDetailsMap::value_type(Device, new SwapChainSupportDetails()));
+	}
+	else
+	{
+		Details = iter->second;
+	}
 	//PhysicalDevice Surface Format KHR
 	{
 		uint32_t FormatCount = 0;
@@ -41,8 +52,8 @@ void GVKSurfaceKHR::GetPhysicalDeviceSurfaceSupportInfos(VkPhysicalDevice Device
 		if (FormatCount != 0)
 		{
 			
-			Details.mFormats.resize(FormatCount);
-			vkGetPhysicalDeviceSurfaceFormatsKHR(Device, mSurface, &FormatCount, Details.mFormats.data());
+			Details->mFormats.resize(FormatCount);
+			vkGetPhysicalDeviceSurfaceFormatsKHR(Device, mSurface, &FormatCount, Details->mFormats.data());
 		}
 	}
 
@@ -52,8 +63,9 @@ void GVKSurfaceKHR::GetPhysicalDeviceSurfaceSupportInfos(VkPhysicalDevice Device
 		vkGetPhysicalDeviceSurfacePresentModesKHR(Device, mSurface, &PresentCount, nullptr);
 		if (PresentCount != 0) 
 		{
-			Details.mPresentModes.resize(PresentCount);
-			vkGetPhysicalDeviceSurfacePresentModesKHR(Device, mSurface, &PresentCount, Details.mPresentModes.data());
+			Details->mPresentModes.resize(PresentCount);
+			vkGetPhysicalDeviceSurfacePresentModesKHR(Device, mSurface, &PresentCount, Details->mPresentModes.data());
 		}
 	}
+	return Details;
 }

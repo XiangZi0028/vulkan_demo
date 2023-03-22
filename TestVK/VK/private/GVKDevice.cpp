@@ -60,7 +60,6 @@ void GVKDevice::SelectTargetGPU()
 	for (uint32_t Index = 0; Index < mGPUs.size(); Index++) {
 		if (auto Score = RateDeviceSuitability(Index))
 		{
-			
 			if (Score > MaxScore)
 			{
 				mCurrentGPUIndex = Index;
@@ -90,7 +89,12 @@ int	GVKDevice::RateDeviceSuitability(int GPUIndex) const
 {
 	VkPhysicalDeviceProperties DeviceProperties;
 	VkPhysicalDeviceFeatures DeviceFeatures;
-
+	auto Details = this->mInstance->mGVKSurfaceKHR->GetPhysicalDeviceSurfaceSupportInfos(mGPUs[GPUIndex]);
+	//如果gpu surface不支持任何格式的像素或者显示模型的话就是个废物。
+	if (Details->mFormats.size() == 0 || Details->mPresentModes.size() == 0)
+	{
+		return 0;
+	}
 	if (!IsGPUSuitable(&mGPUs[GPUIndex], &DeviceProperties, &DeviceFeatures) || !CheckDeviceExtensionSupport(GPUIndex))
 	{
 		return 0;
