@@ -17,11 +17,13 @@ public:
 	GVKQueue(GVKDevice* Device);
 	~GVKQueue();
 	void InitGVKQueue();
-	QueueFamilyIndices GetQueueFamilyIndices() const;
+    QueueFamilyIndices GetQueueFamilyIndices();
 	void CreateDeviceQueue();
 	VkQueue GetGraphicQueue() { return mGraphicQueue; };
 	VkQueue GetTransferQueue() { return mTransferQueue; };
 	VkQueue GetCompuyeQueue() { return mComputeQueue; }
+    VkQueue GetPresentQueue() { return mComputeQueue; }
+
 private:
 	VkQueue mGraphicQueue;
 	VkQueue mTransferQueue;

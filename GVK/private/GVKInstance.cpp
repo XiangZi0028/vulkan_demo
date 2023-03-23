@@ -1,5 +1,5 @@
 #include "GVKInstance.h"
-
+#include "GVKSwapChain.h"
 GVKInstance::GVKInstance(GLFWwindow* Window)
 	:mWindow(Window)
 {
@@ -13,6 +13,9 @@ GVKInstance::GVKInstance(GLFWwindow* Window)
 	mGVKSurfaceKHR = new GVKSurfaceKHR();
 	mGVKSurfaceKHR->CreatePlatformSurfaceKHR(mInstance, mWindow);
 	mGVKDevice = new GVKDevice(this);
+    mSwapChain = new GVKSwapChain(mGVKDevice,mGVKSurfaceKHR,mWindow,mGVKDevice->GetQueue());
+    mSwapChain->CreateVKSwapChain();
+    mSwapChain->CreateImageViewsForSwapChainImages();
 }
 
 GVKInstance::~GVKInstance()
@@ -41,6 +44,7 @@ bool GVKInstance::CheckValidationLayersSupport()
 			return false;
 		}
 	}
+    return true;
 }
 
 bool GVKInstance::CheckExtensionsSupports()
@@ -58,6 +62,7 @@ bool GVKInstance::CheckExtensionsSupports()
 			return false;
 		}
 	}
+    return true;
 }
 
 void GVKInstance::EnumerateInstanceExtensionProperties()
@@ -112,6 +117,7 @@ void GVKInstance::CreateVKInstance()
 
 void GVKInstance::Cleanup()
 {
+    mSwapChain->Cleanup();
 	mGVKDevice->Cleanup();
 	mGVKSurfaceKHR->Cleanup(mInstance);
 	vkDestroyInstance(mInstance, nullptr);

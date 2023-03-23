@@ -10,6 +10,7 @@
 using namespace std;
 
 class GVKDevice;
+class GVKSwapChain;
 class GVKInstance : public enable_shared_from_this<GVKInstance>
 {
 public:
@@ -27,6 +28,7 @@ public:
 	const std::vector<const char*>& GetValidationLayers()const { return mValidationLayers; }
 private:
 	GVKDevice* mGVKDevice;
+    GVKSwapChain *mSwapChain;
 	VkInstance mInstance;
 	GLFWwindow* mWindow;
 	string mAppNmae;

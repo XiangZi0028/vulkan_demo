@@ -20,10 +20,14 @@ set(CMAKE_RUNTIME_OUTPUT_DIRECTORY_DEBUG ${T_RUNTIME_OUTPUT_PATH})
 set(CMAKE_RUNTIME_OUTPUT_DIRECTORY_RELEASE ${T_RUNTIME_OUTPUT_PATH})
 set(CMAKE_RUNTIME_OUTPUT_DIRECTORY_RELWITHDEBINFO ${T_RUNTIME_OUTPUT_PATH})
 
+set(SHADER_PATH ${CMAKE_SOURCE_DIR}/Shaders)
+configure_file("${CMAKE_SOURCE_DIR}/ProjectInfoPath.h.in" "${CMAKE_SOURCE_DIR}/ProjectInfoPath.h")
 
 add_subdirectory(3rd)
 add_subdirectory(GVK)
 link_directories(${CMAKE_CURRENT_BINARY_DIR}/Bin})
-include_directories(${CMAKE_CURRENT_SOURCE_DIR}/GVK/public ${CMAKE_CURRENT_SOURCE_DIR}/3rd/glfw/include ${CMAKE_CURRENT_SOURCE_DIR}/3rd/vulkan/include)
+include_directories(${CMAKE_CURRENT_SOURCE_DIR}/GVK/public ${CMAKE_CURRENT_SOURCE_DIR}/3rd/glfw/include ${CMAKE_CURRENT_SOURCE_DIR}/3rd/vulkan/include  ${CMAKE_CURRENT_SOURCE_DIR})
 add_executable(VlukanDemo main.cpp)
 target_link_libraries(VlukanDemo  ${T_RUNTIME_OUTPUT_PATH}/GVK.lib ${T_RUNTIME_OUTPUT_PATH}/glfw3.lib ${T_RUNTIME_OUTPUT_PATH}/vulkan-1.lib)
+
+

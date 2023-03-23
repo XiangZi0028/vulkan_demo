@@ -1,6 +1,9 @@
 #include "GVKSurfaceKHR.h"
 #define GLFW_EXPOSE_NATIVE_WIN32
 #include <GLFW/glfw3native.h>
+#include<limits>
+#include<algorithm>
+#include <cstdint>
 GVKSurfaceKHR::GVKSurfaceKHR()
 {
 }
@@ -68,4 +71,56 @@ SwapChainSupportDetails* GVKSurfaceKHR::GetPhysicalDeviceSurfaceSupportInfos(VkP
 		}
 	}
 	return Details;
+}
+
+VkSurfaceFormatKHR GVKSurfaceKHR::ChooseSurfaceFormat(VkPhysicalDevice Device) const
+{
+    for(auto AvailibleFormat : GPUSwapchainSupportDetails[Device]->mFormats)
+    {
+        if(AvailibleFormat.format == VK_FORMAT_B8G8R8A8_SRGB
+        && AvailibleFormat.colorSpace == VK_COLOR_SPACE_SRGB_NONLINEAR_KHR)
+        {
+            return AvailibleFormat;
+        }
+    }
+    return GPUSwapchainSupportDetails[Device]->mFormats[0];
+}
+
+VkPresentModeKHR GVKSurfaceKHR::ChoosePresentMode(VkPhysicalDevice Device) const
+{
+    for(auto AvailablePresentMode : GPUSwapchainSupportDetails[Device]->mPresentModes)
+    {
+       if(AvailablePresentMode == VK_PRESENT_MODE_MAILBOX_KHR)
+       {
+           return AvailablePresentMode;
+       }
+    }
+    return VK_PRESENT_MODE_FIFO_KHR;
+}
+
+VkExtent2D GVKSurfaceKHR::ChooseExtent2D(VkPhysicalDevice Device,GLFWwindow* Window) const
+{
+    auto Extent = GPUSwapchainSupportDetails[Device]->mCapabilities;
+    if(Extent.currentExtent.width != UINT32_MAX)
+    {
+        return Extent.currentExtent;
+    }
+    else
+    {
+        int width,height;
+        glfwGetFramebufferSize(Window, &width, &height);
+        VkExtent2D ActualExtent = {
+                static_cast<uint32_t>(width),
+                static_cast<uint32_t>(height),
+        };
+        ActualExtent.width = std::clamp(ActualExtent.width, Extent.minImageExtent.width, Extent.maxImageExtent.width);
+        ActualExtent.height = std::clamp(ActualExtent.height, Extent.minImageExtent.height, Extent.maxImageExtent.height);
+        return ActualExtent;
+    }
+
+}
+
+VkSurfaceCapabilitiesKHR GVKSurfaceKHR::GetSurfaceCapabilities(VkPhysicalDevice Device) const
+{
+     return GPUSwapchainSupportDetails[Device]->mCapabilities;
 }

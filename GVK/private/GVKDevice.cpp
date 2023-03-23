@@ -1,5 +1,6 @@
 #include<GVKDevice.h>
 #include<set>
+#include<VulkanGlobalInfo.h>
 GVKDevice::GVKDevice(GVKInstance* Instance)
 	:mInstance(Instance)
 {
@@ -152,6 +153,10 @@ void GVKDevice::CreateLogicalDevice()
 	{
 		throw std::runtime_error("Faild to Creat logical device!");
 	}
+    else
+    {
+        GVK::GDevice = mDevice;
+    }
 	
 }
 

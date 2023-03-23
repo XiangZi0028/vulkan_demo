@@ -20,7 +20,6 @@ set(CMAKE_RUNTIME_OUTPUT_DIRECTORY_DEBUG ${T_RUNTIME_OUTPUT_PATH})
 set(CMAKE_RUNTIME_OUTPUT_DIRECTORY_RELEASE ${T_RUNTIME_OUTPUT_PATH})
 set(CMAKE_RUNTIME_OUTPUT_DIRECTORY_RELWITHDEBINFO ${T_RUNTIME_OUTPUT_PATH})
 
-
 set(VULKAN_PATH ${PROJECT_SOURCE_DIR}/../3rd/vulkan)
 
 include_directories(${VULKAN_PATH}/include ${CMAKE_CURRENT_SOURCE_DIR}/../3rd/glfw/include ${CMAKE_CURRENT_SOURCE_DIR}/public)
@@ -28,6 +27,6 @@ include_directories(${VULKAN_PATH}/include ${CMAKE_CURRENT_SOURCE_DIR}/../3rd/gl
 link_directories(${VULKAN_PATH}/lib ${CMAKE_CURRENT_BINARY_DIR}/Bin})
 
 aux_source_directory(${CMAKE_CURRENT_SOURCE_DIR}/private/. GVK_SOURCE)
-add_library(GVK STATIC ${GVK_SOURCE})
+add_library(GVK STATIC ${GVK_SOURCE} private/GVKSwapChain.cpp)
 target_link_libraries(GVK  ${T_RUNTIME_OUTPUT_PATH}/glfw3.lib ${T_RUNTIME_OUTPUT_PATH}/vulkan-1.lib)
 #add_dependencies(GVK )

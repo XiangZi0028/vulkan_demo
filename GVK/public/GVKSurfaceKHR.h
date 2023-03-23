@@ -29,14 +29,17 @@ public:
 	GVKSurfaceKHR();
 	~GVKSurfaceKHR();
 	void CreatePlatformSurfaceKHR(const VkInstance Instance, GLFWwindow* Window);
-	SwapChainSupportDetails* GetPhysicalDeviceSurfaceSupportInfos(VkPhysicalDevice Device);
 	void Cleanup(const VkInstance Instance);
+    SwapChainSupportDetails* GetPhysicalDeviceSurfaceSupportInfos(VkPhysicalDevice Device);
 	VkSurfaceKHR GetSUrface() { return mSurface; };
-
+    VkSurfaceFormatKHR ChooseSurfaceFormat(VkPhysicalDevice Device) const;
+    VkPresentModeKHR ChoosePresentMode(VkPhysicalDevice Device) const;
+    VkExtent2D ChooseExtent2D(VkPhysicalDevice Device, GLFWwindow* Window) const;
+    VkSurfaceCapabilitiesKHR GetSurfaceCapabilities(VkPhysicalDevice Device) const;
 public:
 
 private:
-	GPUSwapchainSupportDetailsMap GPUSwapchainSupportDetails;
+	mutable GPUSwapchainSupportDetailsMap GPUSwapchainSupportDetails;
 	VkSurfaceKHR mSurface;
 	VkSurfaceCapabilitiesKHR mCapabilities;
 	std::vector<VkSurfaceFormatKHR> mFormats;

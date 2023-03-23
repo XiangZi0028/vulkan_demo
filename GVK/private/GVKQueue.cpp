@@ -17,7 +17,7 @@ void GVKQueue::InitGVKQueue()
 	InitQueueFamilyIndices();
 }
 
-QueueFamilyIndices GVKQueue::GetQueueFamilyIndices() const
+QueueFamilyIndices GVKQueue::GetQueueFamilyIndices()
 {
 	return this->mQueueFamilyIndics;
 }
@@ -25,7 +25,7 @@ QueueFamilyIndices GVKQueue::GetQueueFamilyIndices() const
 void GVKQueue::CreateDeviceQueue()
 {
 	vkGetDeviceQueue(mDevice->GetVKDevice(), mQueueFamilyIndics.GraphicsFamily.value(), 0, &mGraphicQueue);
-	vkGetDeviceQueue(mDevice->GetVKDevice(), mQueueFamilyIndics.PresentFamily.value(), 0, &mGraphicQueue);
+	vkGetDeviceQueue(mDevice->GetVKDevice(), mQueueFamilyIndics.PresentFamily.value(), 0, &mPresentQueue);
 
 	//vkGetPhysicalDeviceSurfaceSupportKHR(mDevice, i, surface, &presentSupport);
 }

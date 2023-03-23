@@ -19,6 +19,8 @@ public:
 
 	VkDevice GetVKDevice() const;
 
+    GVKQueue* GetQueue() const{ return mQueue;};
+
 	GVKInstance* mInstance;
 
 private:
