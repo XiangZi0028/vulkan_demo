@@ -10,7 +10,7 @@
 using namespace std;
 
 class GVKDevice;
-class GVKInstance : public shared_ptr<GVKInstance>
+class GVKInstance : public enable_shared_from_this<GVKInstance>
 {
 public:
 	GVKSurfaceKHR* mGVKSurfaceKHR;
@@ -33,13 +33,13 @@ private:
 	string mEngineName;
 	uint32_t mExtensionCount_glfw = 0;
 	const char** mExtensions_glfw;
-	//vk可能支持的extension属性
+	//vk锟斤拷锟斤拷支锟街碉拷extension锟斤拷锟斤拷
 	std::vector<VkExtensionProperties> mInstanceExtensions_VK;
-	//vk可能支持的layer属性
+	//vk锟斤拷锟斤拷支锟街碉拷layer锟斤拷锟斤拷
 	std::vector<VkLayerProperties> mAvailableLayers_VK;
-	//需要用到的extension属性
+	//锟斤拷要锟矫碉拷锟斤拷extension锟斤拷锟斤拷
 	std::vector<const char*> mInstanceExtensions;
-	//需要用到的Lyaer属性
+	//锟斤拷要锟矫碉拷锟斤拷Lyaer锟斤拷锟斤拷
 	std::vector<const char*> mValidationLayers;
 private:
 	void EnumerateInstanceExtensionProperties();

@@ -1,10 +1,11 @@
 #pragma once
 #include <GLFW/glfw3.h>
 #include<iostream>
+#include <memory>
 #include "GVKInstance.h"
 using namespace std;
 class GVKInstance;
-class Application : shared_ptr<Application>
+class Application : public enable_shared_from_this<Application>
 {
 public:
 	Application();

@@ -6,7 +6,7 @@
 using namespace std;
 class GVKQueue;
 class GVKInstance;
-class GVKDevice : public shared_ptr<GVKDevice>
+class GVKDevice : public enable_shared_from_this<GVKDevice>
 {
 public:
 	GVKDevice(GVKInstance* Intsance);
@@ -28,8 +28,8 @@ private:
 	//LogicDeviece
 	VkDevice mDevice;
 	//weak_ptr<GVKInstance> mInstance;
-	//ÏÔ¿¨ÒªÇó
-	//Éè±¸À©Õ¹
+	//ï¿½Ô¿ï¿½Òªï¿½ï¿½
+	//ï¿½è±¸ï¿½ï¿½Õ¹
 	//GPUIndex Extensions
 	std::vector<pair<int, std::vector<VkExtensionProperties>>> mAvailableDeviceExtensions_GPUs;
 	std::vector<const char *> mRequiredDeviceExtensions;
@@ -48,7 +48,7 @@ private:
 	bool IsGPUSuitable(const VkPhysicalDevice* GPU, VkPhysicalDeviceProperties* DeviceProperties, VkPhysicalDeviceFeatures* DeviceFeatures) const;
 	
 	void GetGPUPropertiseAndFeatures(const VkPhysicalDevice* GPU, VkPhysicalDeviceProperties& DeviceProperties, VkPhysicalDeviceFeatures& DeviceFeatures) const;
-	//¸øÏÔ¿¨´ò·Ö
+	//ï¿½ï¿½ï¿½Ô¿ï¿½ï¿½ï¿½ï¿½
 	int	RateDeviceSuitability(int GPUIndex) const;
 
 	void CreateLogicalDevice();

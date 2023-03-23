@@ -1,8 +1,7 @@
+cmake_minimum_required(VERSION 3.0)
+project(3rd)
 
-
-#set(VULKAN_INCLUDE ${CMAKE_CURRENT_SOURCE_DIR}/vulkan CACHE PATH INTERNAL)
-set(GLFW_INCLUDE ${CAMAKE_CURRENT_SOURCE_DIR}/glfw CACHE PATH INTERNAL)
-set(GLM_INCLUDE ${CMAKE_CURRENT_SOURCE_DIR}/glm CACHE PATH INTERNAL)
+set(CMAKE_CXX_STANDARD 17)
 add_subdirectory(glfw)
 add_subdirectory(glm)
-add_subdirectory(libassimp)
+#add_subdirectory(libassimp)

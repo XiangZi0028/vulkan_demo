@@ -11,8 +11,7 @@ struct QueueFamilyIndices {
 	std::optional<uint32_t> ComputeFamily;
 	std::optional<uint32_t> PresentFamily;
 };
-
-class GVKQueue : public shared_ptr<GVKQueue>
+class GVKQueue
 {
 public:
 	GVKQueue(GVKDevice* Device);

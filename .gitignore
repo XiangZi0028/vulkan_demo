@@ -32,4 +32,5 @@
 #*.app
 
 out
+cmake-build-*
 *.vs

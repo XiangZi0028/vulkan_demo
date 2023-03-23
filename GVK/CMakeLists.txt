@@ -1,5 +1,5 @@
 cmake_minimum_required(VERSION 3.0)
-project(VlukanDemo)
+project(GVK)
 
 set(CMAKE_CXX_STANDARD 17)
 
@@ -21,9 +21,13 @@ set(CMAKE_RUNTIME_OUTPUT_DIRECTORY_RELEASE ${T_RUNTIME_OUTPUT_PATH})
 set(CMAKE_RUNTIME_OUTPUT_DIRECTORY_RELWITHDEBINFO ${T_RUNTIME_OUTPUT_PATH})
 
 
-add_subdirectory(3rd)
-add_subdirectory(GVK)
-link_directories(${CMAKE_CURRENT_BINARY_DIR}/Bin})
-include_directories(${CMAKE_CURRENT_SOURCE_DIR}/GVK/public ${CMAKE_CURRENT_SOURCE_DIR}/3rd/glfw/include ${CMAKE_CURRENT_SOURCE_DIR}/3rd/vulkan/include)
-add_executable(VlukanDemo main.cpp)
-target_link_libraries(VlukanDemo  ${T_RUNTIME_OUTPUT_PATH}/GVK.lib ${T_RUNTIME_OUTPUT_PATH}/glfw3.lib ${T_RUNTIME_OUTPUT_PATH}/vulkan-1.lib)
+set(VULKAN_PATH ${PROJECT_SOURCE_DIR}/../3rd/vulkan)
+
+include_directories(${VULKAN_PATH}/include ${CMAKE_CURRENT_SOURCE_DIR}/../3rd/glfw/include ${CMAKE_CURRENT_SOURCE_DIR}/public)
+
+link_directories(${VULKAN_PATH}/lib ${CMAKE_CURRENT_BINARY_DIR}/Bin})
+
+aux_source_directory(${CMAKE_CURRENT_SOURCE_DIR}/private/. GVK_SOURCE)
+add_library(GVK STATIC ${GVK_SOURCE})
+target_link_libraries(GVK  ${T_RUNTIME_OUTPUT_PATH}/glfw3.lib ${T_RUNTIME_OUTPUT_PATH}/vulkan-1.lib)
+#add_dependencies(GVK )

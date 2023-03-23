@@ -1,7 +1,7 @@
 #pragma once
 #include <vulkan/vulkan.hpp>
 #include <GVKDevice.h>
-class GVKSwapChain : shared_ptr<GVKSwapChain>
+class GVKSwapChain : public enable_shared_from_this<GVKSwapChain>
 {
 public:
 	GVKSwapChain(GVKDevice* Device, GVKSurfaceKHR Surface);

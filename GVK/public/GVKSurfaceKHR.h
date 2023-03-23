@@ -6,6 +6,8 @@
 #include<iostream>
 #include<map>
 #include<vector>
+#include <memory>
+
 using namespace std;
 struct SwapChainSupportDetails
 {
@@ -20,7 +22,8 @@ struct SwapChainSupportDetails
 	std::vector<VkPresentModeKHR> mPresentModes;
 };
 using GPUSwapchainSupportDetailsMap = map<VkPhysicalDevice, SwapChainSupportDetails*>;
-class GVKSurfaceKHR : shared_ptr<GVKSurfaceKHR>
+class GVKSurfaceKHR;
+class GVKSurfaceKHR : public enable_shared_from_this<GVKSurfaceKHR>
 {
 public:
 	GVKSurfaceKHR();
