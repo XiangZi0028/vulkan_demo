@@ -1,17 +1,18 @@
 //
 // Created by Administrator on 2023/3/23.
 //
-
+#pragma once
 #include "GVKShaderModules.h"
-#include "VulkanGlobalInfo.h"
-GVKShader::GVKShader(ShaderType Type, char *CodeData, uint32_t DataSize)
+#include <fstream>
+GVKShader::GVKShader(ShaderType Type, const std::string FilePath)
 :mShaderType(Type)
 {
+    std::vector<char> CodeData = ReadFile(FilePath);
     VkShaderModuleCreateInfo CreateInfo{};
     CreateInfo.sType = VK_STRUCTURE_TYPE_SHADER_MODULE_CREATE_INFO;
-    CreateInfo.codeSize = DataSize;
-    CreateInfo.pCode = reinterpret_cast<const uint32_t*>(CodeData);
-    if (vkCreateShaderModule(GVK::GDevice, &CreateInfo, nullptr, &mShaderModule) != VK_SUCCESS) {
+    CreateInfo.codeSize = CodeData.size();
+    CreateInfo.pCode = reinterpret_cast<const uint32_t*>(CodeData.data());
+    if (vkCreateShaderModule(GDevice, &CreateInfo, nullptr, &mShaderModule) != VK_SUCCESS) {
         throw std::runtime_error("failed to create shader module!");
     }
     ShaderStageInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_SHADER_STAGE_CREATE_INFO;
@@ -25,7 +26,7 @@ GVKShader::~GVKShader()
 
 void GVKShader::Cleanup()
 {
-    vkDestroyShaderModule(GVK::GDevice, mShaderModule, nullptr);
+    vkDestroyShaderModule(GDevice, mShaderModule, nullptr);
 }
 
 VkShaderStageFlagBits GVKShader::GetShaderStage()
@@ -38,4 +39,19 @@ VkShaderStageFlagBits GVKShader::GetShaderStage()
         default: throw std::runtime_error("Unknown ShaderType!");
     }
     return StageFlag;
+}
+
+std::vector<char> GVKShader::ReadFile(const std::string FilePath)
+{
+    std::ifstream file(FilePath, std::ios::ate | std::ios::binary);
+    if (!file.is_open())
+    {
+        throw std::runtime_error("failed to open file!");
+    }
+    size_t FileSize = (size_t) file.tellg();
+    std::vector<char> buffer(FileSize);
+    file.seekg(0);
+    file.read(buffer.data(), FileSize);
+    file.close();
+    return buffer;
 }

@@ -1,6 +1,6 @@
 #include<GVKDevice.h>
 #include<set>
-#include<VulkanGlobalInfo.h>
+#include "VulkanGlobalInfo.h"
 GVKDevice::GVKDevice(GVKInstance* Instance)
 	:mInstance(Instance)
 {
@@ -155,7 +155,7 @@ void GVKDevice::CreateLogicalDevice()
 	}
     else
     {
-        GVK::GDevice = mDevice;
+        GDevice = mDevice;
     }
 	
 }

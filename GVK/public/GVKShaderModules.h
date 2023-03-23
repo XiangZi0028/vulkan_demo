@@ -4,6 +4,7 @@
 #include "vulkan/vulkan.hpp"
 #ifndef VLUKANDEMO_GVKSHADERMODULES_H
 #define VLUKANDEMO_GVKSHADERMODULES_H
+#include "VulkanGlobalInfo.h"
 
 enum ShaderType
 {
@@ -15,8 +16,9 @@ enum ShaderType
 class GVKShader {
 
 public:
-    GVKShader(ShaderType Type, char *CodeData, uint32_t DataSize);
+    GVKShader(ShaderType Type, const std::string FilePath);
     void Cleanup();
+    static std::vector<char> ReadFile(const std::string FilePath);
     ~GVKShader();
 private:
     VkShaderModule mShaderModule;
