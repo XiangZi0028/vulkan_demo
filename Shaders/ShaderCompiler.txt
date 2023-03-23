@@ -1,0 +1,3 @@
+
+
+//glslc.exe ..\Triangle.vert -o ..\Triangle_vert.spv
