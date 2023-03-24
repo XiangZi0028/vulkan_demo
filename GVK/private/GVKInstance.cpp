@@ -1,5 +1,6 @@
 #include "GVKInstance.h"
 #include "GVKSwapChain.h"
+#include "VulkanGlobalInfo.h"
 GVKInstance::GVKInstance(GLFWwindow* Window)
 	:mWindow(Window)
 {
@@ -14,6 +15,7 @@ GVKInstance::GVKInstance(GLFWwindow* Window)
 	mGVKSurfaceKHR->CreatePlatformSurfaceKHR(mInstance, mWindow);
 	mGVKDevice = new GVKDevice(this);
     mSwapChain = new GVKSwapChain(mGVKDevice,mGVKSurfaceKHR,mWindow,mGVKDevice->GetQueue());
+    GVKVariable::GGVKSwapChain = mSwapChain;
     mSwapChain->CreateVKSwapChain();
     mSwapChain->CreateImageViewsForSwapChainImages();
 }

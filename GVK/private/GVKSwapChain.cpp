@@ -17,7 +17,7 @@ void GVKSwapChain::CreateVKSwapChain()
 {
     VkSurfaceFormatKHR SurfaceFormat =  mSurface->ChooseSurfaceFormat(mDevice->GetCurrentGPU());
     VkPresentModeKHR PresentMode = mSurface->ChoosePresentMode(mDevice->GetCurrentGPU());
-    VkExtent2D Extent2D = mSurface->ChooseExtent2D(mDevice->GetCurrentGPU(),mWindow);
+    mExtent2D = mSurface->ChooseExtent2D(mDevice->GetCurrentGPU(),mWindow);
     auto SurfaceCapabilities = mSurface->GetSurfaceCapabilities(mDevice->GetCurrentGPU());
     SwapChainImageCount = SurfaceCapabilities.minImageCount + 1;
     if(SurfaceCapabilities.maxImageCount > 0 && SwapChainImageCount > SurfaceCapabilities.maxImageCount)
@@ -27,7 +27,7 @@ void GVKSwapChain::CreateVKSwapChain()
     VkSwapchainCreateInfoKHR CreateInfo;
     CreateInfo.sType = VK_STRUCTURE_TYPE_SWAPCHAIN_CREATE_INFO_KHR;
     CreateInfo.minImageCount = SwapChainImageCount;
-    CreateInfo.imageExtent = Extent2D;
+    CreateInfo.imageExtent = mExtent2D;
     CreateInfo.imageColorSpace = SurfaceFormat.colorSpace;
     CreateInfo.imageFormat= SurfaceFormat.format;
     CreateInfo.presentMode = PresentMode;
@@ -97,4 +97,9 @@ void GVKSwapChain::CreateImageViewsForSwapChainImages()
             throw std::runtime_error("failed to create image views!");
         }
     }
+}
+
+VkExtent2D GVKSwapChain::GetSwapChainExtent()
+{
+    return mExtent2D;
 }

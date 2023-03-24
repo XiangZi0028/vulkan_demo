@@ -19,7 +19,9 @@ public:
 	void CreateVKSwapChain();
     void GetSwapChainImage();
     void CreateImageViewsForSwapChainImages();
+    VkExtent2D GetSwapChainExtent();
 private:
+    VkExtent2D mExtent2D{};
     std::vector<VkImage> mSwapChainImages;
     std::vector<VkImageView> mSwapChainImageViews;
     uint32_t SwapChainImageCount = 0;

@@ -6,6 +6,7 @@
 namespace GVKVariable
 {
     extern VkDevice GDevice;
+    extern GVKSwapChain* GGVKSwapChain;
 }
 
 
