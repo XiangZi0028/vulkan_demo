@@ -2,6 +2,7 @@
 #define VLUKANDEMO_VULKANGLOBALINFO_H
 
 #include <vulkan/vulkan.hpp>
+class GVKSwapChain;
 
 namespace GVKVariable
 {
