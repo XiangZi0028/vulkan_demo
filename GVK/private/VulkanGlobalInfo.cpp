@@ -1,3 +1,6 @@
 #include "VulkanGlobalInfo.h"
 
-VkDevice GDevice;
+namespace GVKVariable
+{
+    VkDevice GDevice;
+}

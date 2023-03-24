@@ -12,7 +12,7 @@ GVKShader::GVKShader(ShaderType Type, const std::string FilePath)
     CreateInfo.sType = VK_STRUCTURE_TYPE_SHADER_MODULE_CREATE_INFO;
     CreateInfo.codeSize = CodeData.size();
     CreateInfo.pCode = reinterpret_cast<const uint32_t*>(CodeData.data());
-    if (vkCreateShaderModule(GDevice, &CreateInfo, nullptr, &mShaderModule) != VK_SUCCESS) {
+    if (vkCreateShaderModule(GVKVariable::GDevice, &CreateInfo, nullptr, &mShaderModule) != VK_SUCCESS) {
         throw std::runtime_error("failed to create shader module!");
     }
     ShaderStageInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_SHADER_STAGE_CREATE_INFO;
@@ -26,7 +26,7 @@ GVKShader::~GVKShader()
 
 void GVKShader::Cleanup()
 {
-    vkDestroyShaderModule(GDevice, mShaderModule, nullptr);
+    vkDestroyShaderModule(GVKVariable::GDevice, mShaderModule, nullptr);
 }
 
 VkShaderStageFlagBits GVKShader::GetShaderStage()

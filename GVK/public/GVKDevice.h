@@ -1,4 +1,6 @@
-#pragma once
+
+#ifndef VLUKANDEMO_GVKDEVICE_H
+#define VLUKANDEMO_GVKDEVICE_H
 #include "GVKQueue.h"
 #include "GVKInstance.h"
 #include<vulkan/vulkan.hpp>
@@ -63,3 +65,4 @@ private:
 
 	bool CheckDeviceExtensionSupport(int GPUIndex) const;
 };
+#endif

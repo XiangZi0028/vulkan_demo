@@ -1,4 +1,8 @@
 #pragma once
+#ifndef VLUKANDEMO_GVKQUEUE_H
+#define VLUKANDEMO_GVKQUEUE_H
+
+
 #include <vulkan/vulkan.hpp>
 #include "GVKDevice.h"
 #include<optional>
@@ -11,7 +15,7 @@ struct QueueFamilyIndices {
 	std::optional<uint32_t> ComputeFamily;
 	std::optional<uint32_t> PresentFamily;
 };
-class GVKQueue
+class GVKQueue : public enable_shared_from_this<GVKQueue>
 {
 public:
 	GVKQueue(GVKDevice* Device);
@@ -37,3 +41,4 @@ private:
 	void InitQueueFamilyIndices();
 };
 
+#endif //VLUKANDEMO_GVKQUEUE_H

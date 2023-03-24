@@ -27,6 +27,6 @@ include_directories(${VULKAN_PATH}/include ${CMAKE_CURRENT_SOURCE_DIR}/../3rd/gl
 link_directories(${VULKAN_PATH}/lib ${CMAKE_CURRENT_BINARY_DIR}/Bin})
 
 aux_source_directory(${CMAKE_CURRENT_SOURCE_DIR}/private/. GVK_SOURCE)
-add_library(GVK STATIC ${GVK_SOURCE} private/GVKSwapChain.cpp)
+add_library(GVK STATIC ${GVK_SOURCE})
 target_link_libraries(GVK  ${T_RUNTIME_OUTPUT_PATH}/glfw3.lib ${T_RUNTIME_OUTPUT_PATH}/vulkan-1.lib)
 #add_dependencies(GVK )

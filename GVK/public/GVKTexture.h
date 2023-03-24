@@ -1,4 +1,6 @@
-#pragma once
+#ifndef VLUKANDEMO_GVKTEXTURE_H
+#define VLUKANDEMO_GVKGVKSWAPCHAIN_H
+
 #include "vulkan/vulkan.hpp"
 
 class GVKTexture
@@ -12,3 +14,5 @@ private:
     VkImage mImage;
     VkImageView mImageView;
 };
+
+#endif //VLUKANDEMO_GVKGVKSWAPCHAIN_H

@@ -1,4 +1,7 @@
-#pragma once
+#ifndef VLUKANDEMO_GVKSURFACEKHR_H
+#define VLUKANDEMO_GVKSURFACEKHR_H
+
+
 #define GLFW_INCLUDE_VULKAN
 #define VK_USE_PLATFORM_WIN32_KHR
 #include <GLFW/glfw3.h>
@@ -46,3 +49,4 @@ private:
 	std::vector<VkPresentModeKHR> mPresentModes;	
 };
 
+#endif //VLUKANDEMO_GVKSURFACEKHR_H

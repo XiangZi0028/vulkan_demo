@@ -1,4 +1,7 @@
 #pragma once
+#ifndef VLUKANDEMO_GVKINSTANCE_H
+#define VLUKANDEMO_GVKINSTANCE_H
+
 #define VK_USE_PLATFORM_WIN32_KHR
 #define GLFW_INCLUDE_VULKAN
 #include <GLFW/glfw3.h>
@@ -51,3 +54,4 @@ private:
 	void InitRequiredInstanceExtensions();
 };
 
+#endif //VLUKANDEMO_GVKINSTANCE_H

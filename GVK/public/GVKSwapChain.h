@@ -1,4 +1,6 @@
-#pragma once
+#ifndef VLUKANDEMO_GVKSWAPCHAIN_H
+#define VLUKANDEMO_GVKSWAPCHAIN_H
+
 #include <vulkan/vulkan.hpp>
 #include <iostream>
 #include "GLFW/glfw3.h"
@@ -27,3 +29,4 @@ private:
     GLFWwindow *mWindow;
     VkSwapchainKHR mSwapChain;
 };
+#endif //VLUKANDEMO_GVKSWAPCHAIN_H

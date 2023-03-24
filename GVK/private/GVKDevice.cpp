@@ -155,7 +155,7 @@ void GVKDevice::CreateLogicalDevice()
 	}
     else
     {
-        GDevice = mDevice;
+        GVKVariable::GDevice = mDevice;
     }
 	
 }
