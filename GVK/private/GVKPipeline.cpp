@@ -97,7 +97,46 @@ void GVKPipeline::InitDepthStencialInfo()
 
 }
 
+void GVKPipeline::InitColorBlendAttachmentInfo()
+{
+    mColorBlendAttachmentInfo.colorWriteMask = VK_COLOR_COMPONENT_R_BIT | VK_COLOR_COMPONENT_G_BIT | VK_COLOR_COMPONENT_B_BIT | VK_COLOR_COMPONENT_A_BIT;
+    mColorBlendAttachmentInfo.blendEnable = VK_FALSE;
+    mColorBlendAttachmentInfo.srcColorBlendFactor = VK_BLEND_FACTOR_ONE;
+    mColorBlendAttachmentInfo.dstColorBlendFactor = VK_BLEND_FACTOR_ZERO;
+    mColorBlendAttachmentInfo.colorBlendOp = VK_BLEND_OP_ADD;
+    mColorBlendAttachmentInfo.srcAlphaBlendFactor = VK_BLEND_FACTOR_ONE;
+    mColorBlendAttachmentInfo.dstAlphaBlendFactor = VK_BLEND_FACTOR_ZERO;
+    mColorBlendAttachmentInfo.alphaBlendOp = VK_BLEND_OP_ADD;
+}
+//关于Blend这块参数的很多东西 需要后面再根据官方的文档看看
 void GVKPipeline::InitColorBlending()
 {
+    mColorBlendInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_COLOR_BLEND_STATE_CREATE_INFO;
+    mColorBlendInfo.logicOpEnable = VK_FALSE;
+    mColorBlendInfo.logicOp = VK_LOGIC_OP_COPY;
+    mColorBlendInfo.attachmentCount = 1;
+    mColorBlendInfo.pAttachments = &mColorBlendAttachmentInfo;
+    mColorBlendInfo.blendConstants[0] = 0.0f;
+    mColorBlendInfo.blendConstants[1] = 0.0f;
+    mColorBlendInfo.blendConstants[2] = 0.0f;
+    mColorBlendInfo.blendConstants[3] = 0.0f;
+}
 
+void GVKPipeline::CreatePipelineLayout()
+{
+    VkPipelineLayoutCreateInfo PipelineLayoutInfo{};
+    PipelineLayoutInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_LAYOUT_CREATE_INFO;
+    PipelineLayoutInfo.setLayoutCount = 0;
+    PipelineLayoutInfo.pSetLayouts = nullptr;
+    PipelineLayoutInfo.pushConstantRangeCount = 0;
+    PipelineLayoutInfo.pPushConstantRanges = nullptr;
+
+    if (vkCreatePipelineLayout(GVKVariable::GDevice, &PipelineLayoutInfo, nullptr, &mPipelineLayout) != VK_SUCCESS) {
+        throw std::runtime_error("failed to create pipeline layout!");
+    }
+}
+
+void GVKPipeline::Cleanup()
+{
+    vkDestroyPipelineLayout(GVKVariable::GDevice, mPipelineLayout, nullptr);
 }

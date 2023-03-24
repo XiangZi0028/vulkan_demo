@@ -5,8 +5,11 @@
 using namespace std;
 class  GVKPipeline : public enable_shared_from_this<GVKPipeline>
 {
+public:
     GVKPipeline();
     ~GVKPipeline();
+    void CreatePipelineLayout();
+    void Cleanup();
 public:
 
 private:
@@ -23,6 +26,7 @@ private:
     VkPipelineColorBlendStateCreateInfo mColorBlendInfo{};
     //Need To Set
     VkPipelineDepthStencilStateCreateInfo mDepthStencialInfo{};
+    VkPipelineLayout mPipelineLayout;
 private:
     void InitDynamicState();
     void InitVertexInputInfo();
@@ -33,6 +37,7 @@ private:
     void InitRasterInfo();
     void InitMultiSamplingInfo();
     void InitDepthStencialInfo();
+    void InitColorBlendAttachmentInfo();
     void InitColorBlending();
 };
 
