@@ -44,7 +44,7 @@ public:
 private:
 	mutable GPUSwapchainSupportDetailsMap GPUSwapchainSupportDetails;
 	VkSurfaceKHR mSurface;
-	VkSurfaceCapabilitiesKHR mCapabilities;
+//	VkSurfaceCapabilitiesKHR mCapabilities;
 	std::vector<VkSurfaceFormatKHR> mFormats;
 	std::vector<VkPresentModeKHR> mPresentModes;	
 };

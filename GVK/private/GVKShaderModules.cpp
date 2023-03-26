@@ -15,10 +15,10 @@ GVKShader::GVKShader(ShaderType Type, const std::string FilePath)
     if (vkCreateShaderModule(GVKVariable::GDevice, &CreateInfo, nullptr, &mShaderModule) != VK_SUCCESS) {
         throw std::runtime_error("failed to create shader module!");
     }
-    ShaderStageInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_SHADER_STAGE_CREATE_INFO;
-    ShaderStageInfo.stage = GetShaderStage();
-    ShaderStageInfo.module = mShaderModule;
-    ShaderStageInfo.pName = "main";
+    mShaderStageInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_SHADER_STAGE_CREATE_INFO;
+    mShaderStageInfo.stage = GetShaderStage();
+    mShaderStageInfo.module = mShaderModule;
+    mShaderStageInfo.pName = "main";
 }
 GVKShader::~GVKShader()
 {

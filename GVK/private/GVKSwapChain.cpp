@@ -53,6 +53,8 @@ void GVKSwapChain::CreateVKSwapChain()
     //之前以为没有设置这两个参数 导致createswapchain的时候出现问题
     CreateInfo.oldSwapchain = VK_NULL_HANDLE;
     CreateInfo.pNext = nullptr;
+    CreateInfo.flags = VK_SWAPCHAIN_CREATE_MUTABLE_FORMAT_BIT_KHR;
+    //CreateInfo.flags =  VK_SWAPCHAIN_CREATE_FLAG_BITS_MAX_ENUM_KHR; //?? 这里不设置flags没有什么问题  但是验证层打开的时候会有错误提示信息
     if(vkCreateSwapchainKHR(mDevice->GetVKDevice(), &CreateInfo, nullptr, &mSwapChain))
     {
         throw std::runtime_error("Faild to Create SwapChain!");
@@ -105,4 +107,9 @@ void GVKSwapChain::CreateImageViewsForSwapChainImages()
 VkExtent2D GVKSwapChain::GetSwapChainExtent()
 {
     return mExtent2D;
+}
+
+VkFormat GVKSwapChain::GetSwapChainImgFormat()
+{
+    return mSurface->ChooseSurfaceFormat(mDevice->GetCurrentGPU()).format;
 }

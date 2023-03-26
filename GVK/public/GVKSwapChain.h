@@ -20,6 +20,7 @@ public:
     void GetSwapChainImage();
     void CreateImageViewsForSwapChainImages();
     VkExtent2D GetSwapChainExtent();
+    VkFormat GetSwapChainImgFormat();
 private:
     VkExtent2D mExtent2D{};
     std::vector<VkImage> mSwapChainImages;

@@ -43,7 +43,7 @@ private:
 	GVKQueue* mQueue;
 	//createInfo and createInfo Priorities
 	std::vector<VkDeviceQueueCreateInfo> mQueueCreateInfos;
-	std::vector<float> mQueuePrioritys;
+	std::vector<float*> mQueuePrioritys;
 	VkPhysicalDeviceFeatures mGPUFeatures = {};
 private:
 	void EnumerateGPUs();

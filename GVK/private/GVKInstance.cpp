@@ -1,6 +1,7 @@
 #include "GVKInstance.h"
 #include "GVKSwapChain.h"
 #include "VulkanGlobalInfo.h"
+#include "GVKPipeline.h"
 GVKInstance::GVKInstance(GLFWwindow* Window)
 	:mWindow(Window)
 {

@@ -11,6 +11,9 @@ public:
     ~GVKPipeline();
     void CreatePipelineLayout();
     void Cleanup();
+    void CreateGraphiPipeline();
+    GVKPipeline* SetShaderStages(std::vector<VkPipelineShaderStageCreateInfo>* InShaderStages);
+    GVKPipeline* SetRenderPass(VkRenderPass RenderPass, ::uint32_t SubpassIndex);
 public:
 
 private:
@@ -25,8 +28,15 @@ private:
     VkPipelineMultisampleStateCreateInfo mMultiSamplingInfo{};
     VkPipelineColorBlendAttachmentState mColorBlendAttachmentInfo{};
     VkPipelineColorBlendStateCreateInfo mColorBlendInfo{};
+
     //Need To Set
     VkPipelineDepthStencilStateCreateInfo mDepthStencialInfo{};
+
+
+    VkGraphicsPipelineCreateInfo mGraphicsPipelineInfo{};
+
+    VkPipeline mGraphicsPipeline;
+private:
     VkPipelineLayout mPipelineLayout;
 private:
     void InitDynamicState();
@@ -40,6 +50,8 @@ private:
     void InitDepthStencialInfo();
     void InitColorBlendAttachmentInfo();
     void InitColorBlending();
+    void InitGraphicsPipelineCreateInfo();
+
 };
 
 #endif
