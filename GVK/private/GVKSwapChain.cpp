@@ -26,6 +26,7 @@ void GVKSwapChain::CreateVKSwapChain()
     }
     VkSwapchainCreateInfoKHR CreateInfo;
     CreateInfo.sType = VK_STRUCTURE_TYPE_SWAPCHAIN_CREATE_INFO_KHR;
+    CreateInfo.surface = mSurface->GetSUrface();
     CreateInfo.minImageCount = SwapChainImageCount;
     CreateInfo.imageExtent = mExtent2D;
     CreateInfo.imageColorSpace = SurfaceFormat.colorSpace;
@@ -49,7 +50,9 @@ void GVKSwapChain::CreateVKSwapChain()
     CreateInfo.preTransform = SurfaceCapabilities.currentTransform;
     CreateInfo.compositeAlpha = VK_COMPOSITE_ALPHA_OPAQUE_BIT_KHR;
     CreateInfo.clipped = VK_TRUE;
-
+    //之前以为没有设置这两个参数 导致createswapchain的时候出现问题
+    CreateInfo.oldSwapchain = VK_NULL_HANDLE;
+    CreateInfo.pNext = nullptr;
     if(vkCreateSwapchainKHR(mDevice->GetVKDevice(), &CreateInfo, nullptr, &mSwapChain))
     {
         throw std::runtime_error("Faild to Create SwapChain!");

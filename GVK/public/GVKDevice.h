@@ -5,6 +5,7 @@
 #include "GVKInstance.h"
 #include<vulkan/vulkan.hpp>
 #include<iostream>
+#include <memory>
 using namespace std;
 class GVKQueue;
 class GVKInstance;

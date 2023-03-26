@@ -7,6 +7,7 @@
 #include "GVKDevice.h"
 #include<optional>
 #include <iostream>
+#include <memory>
 using namespace std;
 class GVKDevice;
 struct QueueFamilyIndices {

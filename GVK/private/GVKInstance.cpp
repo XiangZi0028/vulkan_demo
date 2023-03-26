@@ -130,7 +130,7 @@ void GVKInstance::InitInstanceValidationLayers()
 	//目前不支持的原因是因为我移动了VULKAN 的SDK位置，如果想放在自己的位置的需要配置
 	//VulkanSDK\1.3.231.1\Bin\vkconfig.exe
 	//不知道源码编译Vulkan的话支持不支持
-	//mValidationLayers.push_back("VK_LAYER_KHRONOS_validation");
+	mValidationLayers.push_back("VK_LAYER_KHRONOS_validation");
 }
 
 void GVKInstance::InitRequiredInstanceExtensions()
