@@ -15,6 +15,7 @@ GVKInstance::GVKInstance(GLFWwindow* Window)
 	mGVKSurfaceKHR = new GVKSurfaceKHR();
 	mGVKSurfaceKHR->CreatePlatformSurfaceKHR(mInstance, mWindow);
 	mGVKDevice = new GVKDevice(this);
+    GVKVariable::GGVKDevice = mGVKDevice;
     mSwapChain = new GVKSwapChain(mGVKDevice,mGVKSurfaceKHR,mWindow,mGVKDevice->GetQueue());
     GVKVariable::GGVKSwapChain = mSwapChain;
     mSwapChain->CreateVKSwapChain();

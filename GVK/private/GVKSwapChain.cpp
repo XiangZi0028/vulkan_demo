@@ -3,6 +3,9 @@
 //
 #include <GVKSwapChain.h>
 #include <GVKDevice.h>
+#include "GVKFrameBuffer.h"
+#include "GVKRenderPass.h"
+#include <GVKTexture.h>
 GVKSwapChain::GVKSwapChain(GVKDevice* Device, GVKSurfaceKHR* Surface, GLFWwindow* Window, GVKQueue *Queue)
 :mDevice(Device),mSurface(Surface),mWindow(Window),mQueue(Queue)
 {
@@ -63,6 +66,10 @@ void GVKSwapChain::CreateVKSwapChain()
 
 void GVKSwapChain::Cleanup()
 {
+    for(auto FrameBuffer : mFrameBuffer)
+    {
+        vkDestroyFramebuffer(mDevice->GetVKDevice(),FrameBuffer->GetVKFrameBuffer(), nullptr);
+    }
     for(auto ImageView : mSwapChainImageViews)
     {
         vkDestroyImageView(mDevice->GetVKDevice(), ImageView, nullptr);
@@ -82,6 +89,7 @@ void GVKSwapChain::CreateImageViewsForSwapChainImages()
 {
     GetSwapChainImage();
     mSwapChainImageViews.resize(SwapChainImageCount);
+    mFrameBufferAttachments.resize(SwapChainImageCount);
     for(int Index =0; Index < SwapChainImageCount; Index++ )
     {
         VkImageViewCreateInfo CreateInfo = {};
@@ -101,6 +109,11 @@ void GVKSwapChain::CreateImageViewsForSwapChainImages()
         if (vkCreateImageView(mDevice->GetVKDevice(), &CreateInfo, nullptr, &mSwapChainImageViews[Index]) != VK_SUCCESS) {
             throw std::runtime_error("failed to create image views!");
         }
+        mFrameBuffer.emplace_back(new GVKFrameBuffer(mExtent2D.width, mExtent2D.height));
+        mFrameBufferTexture.emplace_back(new GVKTexture(mExtent2D.width, mExtent2D.height));
+        mFrameBufferTexture[Index]->SetVKImageAndView(mSwapChainImages[Index],mSwapChainImageViews[Index]);
+        mFrameBufferAttachments[Index].push_back(mFrameBufferTexture[Index]);
+        mFrameBuffer[Index]->SetAttachments(mFrameBufferAttachments[Index]);
     }
 }
 
@@ -112,4 +125,14 @@ VkExtent2D GVKSwapChain::GetSwapChainExtent()
 VkFormat GVKSwapChain::GetSwapChainImgFormat()
 {
     return mSurface->ChooseSurfaceFormat(mDevice->GetCurrentGPU()).format;
+}
+
+
+void  GVKSwapChain::SetRenderPass(GVKRenderPass *RenderPass)
+{
+    for(int Index =0; Index < SwapChainImageCount; Index++ )
+    {
+        RenderPass->SetFrameBuffer(mFrameBuffer[Index]);
+        mFrameBuffer[Index]->CreateFrameBuffer();
+    }
 }

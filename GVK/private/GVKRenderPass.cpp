@@ -5,6 +5,8 @@
 #include "GVKRenderPass.h"
 #include "VulkanGlobalInfo.h"
 #include "GVKShaderModules.h"
+#include "GVKFrameBuffer.h"
+#include "GVKQueue.h"
 GVKRenderPass::GVKRenderPass()
 {
     InitColorAttachment();
@@ -53,6 +55,8 @@ void GVKRenderPass::CreateRenderPass()
     {
         throw std::runtime_error("Faild to create RenderPass!");
     }
+    CreateGraphicsRenderPipeline();
+    GVKVariable::GGVKSwapChain->SetRenderPass(this);
 }
 
 void GVKRenderPass::Cleanup()
@@ -92,9 +96,50 @@ GVKRenderPass* GVKRenderPass::SetShaders(GVKShader* VertextShader, GVKShader* Fr
     return this;
 }
 
+GVKRenderPass* GVKRenderPass::SetFrameBuffer(GVKFrameBuffer *InFrameBuffer)
+{
+    InFrameBuffer->SetRenderPass(mRenderPass);
+    return this;
+}
+
 void GVKRenderPass::CreateGraphicsRenderPipeline()
 {
     mPipeline->SetShaderStages(&mShaderStages)
                 ->SetRenderPass(mRenderPass,0);
     mPipeline->CreateGraphiPipeline();
+}
+
+GVKRenderPass *GVKRenderPass::BegineRenderPass()
+{
+    if(mCmdPool == VK_NULL_HANDLE)
+    {
+        VkCommandPoolCreateInfo CmdPoolInfo{};
+        CmdPoolInfo.sType = VK_STRUCTURE_TYPE_COMMAND_POOL_CREATE_INFO;
+        CmdPoolInfo.flags = VK_COMMAND_POOL_CREATE_RESET_COMMAND_BUFFER_BIT;
+        CmdPoolInfo.queueFamilyIndex = GVKVariable::GGVKDevice->GetQueue()->GetQueueFamilyIndices().GraphicsFamily.value();
+        if (vkCreateCommandPool(GVKVariable::GDevice, &CmdPoolInfo, nullptr, &mCmdPool) != VK_SUCCESS) {
+            throw std::runtime_error("failed to create command pool!");
+        }
+    }
+    if(mCmdBuffer == VK_NULL_HANDLE)
+    {
+        VkCommandBufferAllocateInfo  CmdBufferBeginInfo;
+        CmdBufferBeginInfo.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_ALLOCATE_INFO;
+        CmdBufferBeginInfo.commandPool = mCmdPool;
+        CmdBufferBeginInfo.level = VK_COMMAND_BUFFER_LEVEL_PRIMARY;
+        CmdBufferBeginInfo.commandBufferCount = 1;
+        if (vkAllocateCommandBuffers(GVKVariable::GDevice, &CmdBufferBeginInfo, &mCmdBuffer) != VK_SUCCESS) {
+            throw std::runtime_error("failed to allocate command buffers!");
+        }
+    }
+
+
+    VkCommandBufferBeginInfo BeginInfo{};
+    BeginInfo.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_BEGIN_INFO;
+    BeginInfo.flags = 0; // Optional
+    BeginInfo.pInheritanceInfo = nullptr; // Optional
+
+    if (vkBeginCommandBuffer(mCmdBuffer, &BeginInfo) != VK_SUCCESS) {
+        throw std::runtime_error("failed to begin recording command buffer!");
+    }
 }

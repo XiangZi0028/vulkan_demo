@@ -17,16 +17,17 @@ public:
     void CreateRenderPass();
     void CreateGraphicsRenderPipeline();
     void Cleanup();
-
-
     GVKRenderPass* SetPipeline(GVKPipeline *InPipeline);
     GVKRenderPass* SetShaders(GVKShader* VertextShader, GVKShader* FragmentShader, GVKShader* ComputeShader);
+    GVKRenderPass* SetFrameBuffer(GVKFrameBuffer *InFrameBuffer);
+    GVKRenderPass* BegineRenderPass();
 private:
     VkAttachmentDescription mColorAttachment{};
     VkAttachmentReference mColorAttachmentRef{};
     VkSubpassDescription mSubPass{};
     VkRenderPass mRenderPass;
-
+    VkCommandPool mCmdPool;
+    VkCommandBuffer mCmdBuffer;
 private:
     GVKPipeline* mPipeline;
     GVKShader* mVertextShader;

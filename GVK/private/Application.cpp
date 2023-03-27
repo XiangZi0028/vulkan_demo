@@ -30,7 +30,7 @@ void Application::InitVulkan()
     mRenderPass->CreateRenderPass();
     mRenderPass->SetPipeline(mPipeline);
     mRenderPass->SetShaders(mVertexShader,mFragmentShader, nullptr);
-    mRenderPass->CreateGraphicsRenderPipeline();
+
 };
 void Application::MainLoop()
 {

@@ -6,11 +6,15 @@
 class GVKTexture
 {
 public:
-    GVKTexture();
+    GVKTexture(int ImgWidth, int ImgHeight);
     ~GVKTexture();
+    VkImageView GetImageView()const  {return mImageView;};
+    void SetVKImage(VkImage InImage){ mImage = InImage; };
+    void SetVKImageView(VkImageView ImageView){mImageView = ImageView;};
+    void SetVKImageAndView(VkImage InImage, VkImageView InImageView){mImage = InImage; mImageView = InImageView; };
 private:
-    int ImgWidth = 0;
-    int ImgHeight = 0;
+    int mImgWidth = 0;
+    int mImgHeight = 0;
     VkImage mImage;
     VkImageView mImageView;
 };

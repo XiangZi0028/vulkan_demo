@@ -5,4 +5,5 @@ namespace GVKVariable
 
     //GVKInfo
     GVKSwapChain* GGVKSwapChain;
+    GVKDevice* GGVKDevice;
 }

@@ -3,11 +3,12 @@
 
 #include <vulkan/vulkan.hpp>
 class GVKSwapChain;
-
+class GVKDevice;
 namespace GVKVariable
 {
     extern VkDevice GDevice;
     extern GVKSwapChain* GGVKSwapChain;
+    extern GVKDevice* GGVKDevice;
 }
 
 
