@@ -2,6 +2,7 @@
 #define VULKANDEMO_GVKPIPELINE_H
 #include "iostream"
 #include "vulkan/vulkan.hpp"
+#include <memory>
 using namespace std;
 class  GVKPipeline : public enable_shared_from_this<GVKPipeline>
 {

@@ -49,8 +49,10 @@ void GVKSwapChain::CreateVKSwapChain()
     CreateInfo.preTransform = SurfaceCapabilities.currentTransform;
     CreateInfo.compositeAlpha = VK_COMPOSITE_ALPHA_OPAQUE_BIT_KHR;
     CreateInfo.clipped = VK_TRUE;
-
-    if(vkCreateSwapchainKHR(mDevice->GetVKDevice(), &CreateInfo, nullptr, &mSwapChain))
+    CreateInfo.pNext = nullptr;
+    CreateInfo.surface = mSurface->GetSUrface();
+    CreateInfo.oldSwapchain = VK_NULL_HANDLE;
+     if(vkCreateSwapchainKHR(mDevice->GetVKDevice(), &CreateInfo, nullptr, &mSwapChain))
     {
         throw std::runtime_error("Faild to Create SwapChain!");
     }

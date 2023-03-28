@@ -4,6 +4,7 @@
 #include<limits>
 #include<algorithm>
 #include <cstdint>
+#include"VulkanGlobalInfo.h"
 GVKSurfaceKHR::GVKSurfaceKHR()
 {
 }
@@ -23,6 +24,7 @@ void GVKSurfaceKHR::CreatePlatformSurfaceKHR(const VkInstance Instance,GLFWwindo
 	{
 		throw std::runtime_error("Faild to create window surface!");
 	}
+    GVKVariable::GSurface = mSurface;
 #endif // _WIN32
 
 }

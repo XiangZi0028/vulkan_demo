@@ -7,6 +7,7 @@ class GVKSwapChain;
 namespace GVKVariable
 {
     extern VkDevice GDevice;
+    extern VkSurfaceKHR GSurface;
     extern GVKSwapChain* GGVKSwapChain;
 }
 

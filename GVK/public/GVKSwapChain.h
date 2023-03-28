@@ -4,7 +4,7 @@
 #include <vulkan/vulkan.hpp>
 #include <iostream>
 #include "GLFW/glfw3.h"
-
+#include <memory>
 using namespace std;
 class GVKDevice;
 class GVKSurfaceKHR;

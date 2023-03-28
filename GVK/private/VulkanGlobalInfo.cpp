@@ -3,6 +3,7 @@ namespace GVKVariable
 {
     VkDevice GDevice;
 
+    VkSurfaceKHR GSurface;
     //GVKInfo
     GVKSwapChain* GGVKSwapChain;
 }
