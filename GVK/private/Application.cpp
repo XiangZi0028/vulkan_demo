@@ -1,5 +1,9 @@
 #include"Application.h"
-
+#include "GVKShaderModules.h"
+#include "../../ProjectInfoPath.h"
+#include "GVKInstance.h"
+#include "GVKPipeline.h"
+#include "GVKRenderPass.h"
 Application::Application()
 {
 
@@ -18,6 +22,15 @@ void Application::InitWindow()
 void Application::InitVulkan()
 {
 	mGVKInstance = new GVKInstance(mWindow);
+    mPipeline = new GVKPipeline();
+    mPipeline->CreatePipelineLayout();
+    mVertexShader = new GVKShader(ShaderType::VertexShader,std::string(SHADER_PATH)+ "/Triangle_vert.spv");
+    mFragmentShader = new GVKShader(ShaderType::FragmentShader,std::string(SHADER_PATH)+"/Triangle_frag.spv");
+    mRenderPass = new GVKRenderPass();
+    mRenderPass->CreateRenderPass();
+    mRenderPass->SetPipeline(mPipeline);
+    mRenderPass->SetShaders(mVertexShader,mFragmentShader, nullptr);
+
 };
 void Application::MainLoop()
 {
@@ -29,6 +42,7 @@ void Application::MainLoop()
 }
 void Application::Cleanup()
 {
+
 	glfwDestroyWindow(mWindow);
 	glfwTerminate();
 }

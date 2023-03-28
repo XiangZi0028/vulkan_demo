@@ -165,12 +165,12 @@ void GVKDevice::BuildVkDeviceQueueCreateInfo()
 	std::set<uint32_t> uniqueQueueFamilies = { mQueue->GetQueueFamilyIndices().PresentFamily.value(), mQueue->GetQueueFamilyIndices().GraphicsFamily.value() };
 	for (auto QueueFamilyIndex : uniqueQueueFamilies)
 	{
-		float& CurrentQueuePriority = mQueuePrioritys.emplace_back(1.0f);
+		/*float& CurrentQueuePriority = */mQueuePrioritys.emplace_back(new float(1.0f));
 		VkDeviceQueueCreateInfo QueueCreateInfo{};
 		QueueCreateInfo.sType = VK_STRUCTURE_TYPE_DEVICE_QUEUE_CREATE_INFO;
 		QueueCreateInfo.queueFamilyIndex = QueueFamilyIndex;
 		QueueCreateInfo.queueCount = 1;
-		QueueCreateInfo.pQueuePriorities = &CurrentQueuePriority;
+		QueueCreateInfo.pQueuePriorities = mQueuePrioritys[mQueuePrioritys.size()-1];
 		mQueueCreateInfos.push_back(QueueCreateInfo);
 	}
 	
@@ -193,6 +193,8 @@ void GVKDevice::InitAvailableDeviceExtensions(int Index)
 void GVKDevice::InitRequiredDeviceExtensions()
 {
 	mRequiredDeviceExtensions.push_back(VK_KHR_SWAPCHAIN_EXTENSION_NAME);
+    //创建swap chain时 Flag：VK_SWAPCHAIN_CREATE_MUTABLE_FORMAT_BIT_KHR 需要开启此扩展
+    mRequiredDeviceExtensions.push_back(VK_KHR_SWAPCHAIN_MUTABLE_FORMAT_EXTENSION_NAME);
 }
 
 bool GVKDevice::CheckDeviceExtensionSupport(int GPUIndex) const

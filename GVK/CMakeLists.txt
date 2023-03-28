@@ -22,7 +22,7 @@ set(CMAKE_RUNTIME_OUTPUT_DIRECTORY_RELWITHDEBINFO ${T_RUNTIME_OUTPUT_PATH})
 
 set(VULKAN_PATH ${PROJECT_SOURCE_DIR}/../3rd/vulkan)
 
-include_directories(${VULKAN_PATH}/include ${CMAKE_CURRENT_SOURCE_DIR}/../3rd/glfw/include ${CMAKE_CURRENT_SOURCE_DIR}/public)
+include_directories(${VULKAN_PATH}/include ${CMAKE_CURRENT_SOURCE_DIR}/../3rd/glfw/include ${CMAKE_CURRENT_SOURCE_DIR}/public ${CMAKE_SOURCE_DIR})
 
 link_directories(${VULKAN_PATH}/lib ${CMAKE_CURRENT_BINARY_DIR}/Bin})
 

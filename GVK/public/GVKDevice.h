@@ -5,6 +5,7 @@
 #include "GVKInstance.h"
 #include<vulkan/vulkan.hpp>
 #include<iostream>
+#include <memory>
 using namespace std;
 class GVKQueue;
 class GVKInstance;
@@ -42,7 +43,7 @@ private:
 	GVKQueue* mQueue;
 	//createInfo and createInfo Priorities
 	std::vector<VkDeviceQueueCreateInfo> mQueueCreateInfos;
-	std::vector<float> mQueuePrioritys;
+	std::vector<float*> mQueuePrioritys;
 	VkPhysicalDeviceFeatures mGPUFeatures = {};
 private:
 	void EnumerateGPUs();

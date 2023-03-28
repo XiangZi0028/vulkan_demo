@@ -10,6 +10,7 @@
 #include<iostream>
 #include "GVKSurfaceKHR.h"
 #include "GVKDevice.h"
+#include <memory>
 using namespace std;
 
 class GVKDevice;

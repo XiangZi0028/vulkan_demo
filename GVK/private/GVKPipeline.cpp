@@ -6,6 +6,17 @@ GVKPipeline::GVKPipeline()
     mDynamicStates.push_back(VK_DYNAMIC_STATE_VIEWPORT);
     mDynamicStates.push_back(VK_DYNAMIC_STATE_SCISSOR);
 
+    InitDynamicState();
+    InitVertexInputInfo();
+    InitInpuAssmebly();
+    InitScissor();
+    InitViewportInfo();
+    InitRasterInfo();
+    InitMultiSamplingInfo();
+    InitDepthStencialInfo();
+    InitColorBlendAttachmentInfo();
+    InitColorBlending();
+    InitGraphicsPipelineCreateInfo();
 }
 
 GVKPipeline::~GVKPipeline()
@@ -19,6 +30,8 @@ void GVKPipeline::InitDynamicState()
     mDynamicStateCreateInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_DYNAMIC_STATE_CREATE_INFO;
     mDynamicStateCreateInfo.dynamicStateCount = static_cast<::uint32_t>(mDynamicStates.size());
     mDynamicStateCreateInfo.pDynamicStates = mDynamicStates.data();
+    mDynamicStateCreateInfo.pNext = nullptr;
+    //mDynamicStateCreateInfo.flags
 }
 
 void GVKPipeline::InitInpuAssmebly()
@@ -26,6 +39,7 @@ void GVKPipeline::InitInpuAssmebly()
     mInputAssmebly.sType = VK_STRUCTURE_TYPE_PIPELINE_INPUT_ASSEMBLY_STATE_CREATE_INFO;
     mInputAssmebly.topology = VK_PRIMITIVE_TOPOLOGY_TRIANGLE_LIST;
     mInputAssmebly.primitiveRestartEnable = VK_FALSE;
+    mInputAssmebly.pNext = nullptr;
 }
 
 void GVKPipeline::InitVertexInputInfo()
@@ -124,6 +138,7 @@ void GVKPipeline::InitColorBlending()
 
 void GVKPipeline::CreatePipelineLayout()
 {
+    //这里这个layout应该是glsl里面的layout(Set,binding)???
     VkPipelineLayoutCreateInfo PipelineLayoutInfo{};
     PipelineLayoutInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_LAYOUT_CREATE_INFO;
     PipelineLayoutInfo.setLayoutCount = 0;
@@ -138,5 +153,52 @@ void GVKPipeline::CreatePipelineLayout()
 
 void GVKPipeline::Cleanup()
 {
+    vkDestroyPipeline(GVKVariable::GDevice,mGraphicsPipeline, nullptr);
     vkDestroyPipelineLayout(GVKVariable::GDevice, mPipelineLayout, nullptr);
 }
+
+void GVKPipeline::InitGraphicsPipelineCreateInfo()
+{
+
+    mGraphicsPipelineInfo.sType = VK_STRUCTURE_TYPE_GRAPHICS_PIPELINE_CREATE_INFO;
+    //PipelineInfo.stageCount = static_cast<::uint32_t>(mShaderStages.size());
+    //PipelineInfo.pStages = mShaderStages.data();
+    mGraphicsPipelineInfo.pVertexInputState = &mVertexInputInfo;
+    mGraphicsPipelineInfo.pInputAssemblyState = &mInputAssmebly;
+    mGraphicsPipelineInfo.pViewportState = &mViewPortInfo;
+    mGraphicsPipelineInfo.pRasterizationState = &mRasterInfo;
+    mGraphicsPipelineInfo.pMultisampleState = &mMultiSamplingInfo;
+    mGraphicsPipelineInfo.pDepthStencilState = nullptr;
+    mGraphicsPipelineInfo.pColorBlendState = &mColorBlendInfo;
+    mGraphicsPipelineInfo.pDynamicState = &mDynamicStateCreateInfo;
+    mGraphicsPipelineInfo.layout = mPipelineLayout;
+
+
+    //后期优化扩展性时候可以考虑
+    //mGraphicsPipelineInfo.flags |= VK_PIPELINE_CREATE_DERIVATIVE_BIT;//只有当这个启用时才有用
+    mGraphicsPipelineInfo.basePipelineHandle = VK_NULL_HANDLE;
+    mGraphicsPipelineInfo.basePipelineIndex -1;
+
+}
+
+GVKPipeline* GVKPipeline::SetShaderStages(std::vector<VkPipelineShaderStageCreateInfo> *InShaderStages)
+{
+    mGraphicsPipelineInfo.stageCount = static_cast<::uint32_t>(InShaderStages->size());
+    mGraphicsPipelineInfo.pStages = InShaderStages->data();
+    return this;
+}
+GVKPipeline* GVKPipeline::SetRenderPass(VkRenderPass RenderPass, ::uint32_t SubpassIndex)
+{
+    mGraphicsPipelineInfo.renderPass = RenderPass;
+    mGraphicsPipelineInfo.subpass = SubpassIndex;
+    return this;
+}
+
+void GVKPipeline::CreateGraphiPipeline()
+{
+    if (vkCreateGraphicsPipelines(GVKVariable::GDevice, VK_NULL_HANDLE, 1, &mGraphicsPipelineInfo, nullptr, &mGraphicsPipeline) != VK_SUCCESS) {
+        throw std::runtime_error("failed to create graphics pipeline!");
+    }
+}
+
+

@@ -36,8 +36,6 @@ void GVKSurfaceKHR::Cleanup(const VkInstance Instance)
 
 SwapChainSupportDetails* GVKSurfaceKHR::GetPhysicalDeviceSurfaceSupportInfos(VkPhysicalDevice Device)
 {
-	vkGetPhysicalDeviceSurfaceCapabilitiesKHR(Device, mSurface, &mCapabilities);
-
 	SwapChainSupportDetails* Details = nullptr;
 	GPUSwapchainSupportDetailsMap::iterator iter = GPUSwapchainSupportDetails.find(Device);
 	if (iter == GPUSwapchainSupportDetails.end())
@@ -72,6 +70,10 @@ SwapChainSupportDetails* GVKSurfaceKHR::GetPhysicalDeviceSurfaceSupportInfos(VkP
 			vkGetPhysicalDeviceSurfacePresentModesKHR(Device, mSurface, &PresentCount, Details->mPresentModes.data());
 		}
 	}
+
+    {
+        vkGetPhysicalDeviceSurfaceCapabilitiesKHR(Device, mSurface, &Details->mCapabilities);
+    }
 	return Details;
 }
 

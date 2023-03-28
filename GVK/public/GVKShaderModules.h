@@ -19,11 +19,12 @@ public:
     GVKShader(ShaderType Type, const std::string FilePath);
     void Cleanup();
     static std::vector<char> ReadFile(const std::string FilePath);
+    VkPipelineShaderStageCreateInfo GetShaderStageInfo(){return mShaderStageInfo;}
     ~GVKShader();
 private:
     VkShaderModule mShaderModule;
     ShaderType mShaderType;
-    VkPipelineShaderStageCreateInfo ShaderStageInfo{};
+    VkPipelineShaderStageCreateInfo mShaderStageInfo{};
     VkShaderStageFlagBits GetShaderStage();
 };
 

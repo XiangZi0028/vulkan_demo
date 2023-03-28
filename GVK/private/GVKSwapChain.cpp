@@ -3,6 +3,9 @@
 //
 #include <GVKSwapChain.h>
 #include <GVKDevice.h>
+#include "GVKFrameBuffer.h"
+#include "GVKRenderPass.h"
+#include <GVKTexture.h>
 GVKSwapChain::GVKSwapChain(GVKDevice* Device, GVKSurfaceKHR* Surface, GLFWwindow* Window, GVKQueue *Queue)
 :mDevice(Device),mSurface(Surface),mWindow(Window),mQueue(Queue)
 {
@@ -26,6 +29,7 @@ void GVKSwapChain::CreateVKSwapChain()
     }
     VkSwapchainCreateInfoKHR CreateInfo;
     CreateInfo.sType = VK_STRUCTURE_TYPE_SWAPCHAIN_CREATE_INFO_KHR;
+    CreateInfo.surface = mSurface->GetSUrface();
     CreateInfo.minImageCount = SwapChainImageCount;
     CreateInfo.imageExtent = mExtent2D;
     CreateInfo.imageColorSpace = SurfaceFormat.colorSpace;
@@ -49,10 +53,12 @@ void GVKSwapChain::CreateVKSwapChain()
     CreateInfo.preTransform = SurfaceCapabilities.currentTransform;
     CreateInfo.compositeAlpha = VK_COMPOSITE_ALPHA_OPAQUE_BIT_KHR;
     CreateInfo.clipped = VK_TRUE;
-    CreateInfo.pNext = nullptr;
-    CreateInfo.surface = mSurface->GetSUrface();
+    //֮ǰ��Ϊû���������������� ����createswapchain��ʱ���������
     CreateInfo.oldSwapchain = VK_NULL_HANDLE;
-     if(vkCreateSwapchainKHR(mDevice->GetVKDevice(), &CreateInfo, nullptr, &mSwapChain))
+    CreateInfo.pNext = nullptr;
+    CreateInfo.flags = VK_SWAPCHAIN_CREATE_MUTABLE_FORMAT_BIT_KHR;
+    //CreateInfo.flags =  VK_SWAPCHAIN_CREATE_FLAG_BITS_MAX_ENUM_KHR; //?? ���ﲻ����flagsû��ʲô����  ������֤��򿪵�ʱ����д�����ʾ��Ϣ
+    if(vkCreateSwapchainKHR(mDevice->GetVKDevice(), &CreateInfo, nullptr, &mSwapChain))
     {
         throw std::runtime_error("Faild to Create SwapChain!");
     }
@@ -60,6 +66,10 @@ void GVKSwapChain::CreateVKSwapChain()
 
 void GVKSwapChain::Cleanup()
 {
+    for(auto FrameBuffer : mFrameBuffer)
+    {
+        vkDestroyFramebuffer(mDevice->GetVKDevice(),FrameBuffer->GetVKFrameBuffer(), nullptr);
+    }
     for(auto ImageView : mSwapChainImageViews)
     {
         vkDestroyImageView(mDevice->GetVKDevice(), ImageView, nullptr);
@@ -79,6 +89,7 @@ void GVKSwapChain::CreateImageViewsForSwapChainImages()
 {
     GetSwapChainImage();
     mSwapChainImageViews.resize(SwapChainImageCount);
+    mFrameBufferAttachments.resize(SwapChainImageCount);
     for(int Index =0; Index < SwapChainImageCount; Index++ )
     {
         VkImageViewCreateInfo CreateInfo = {};
@@ -98,10 +109,30 @@ void GVKSwapChain::CreateImageViewsForSwapChainImages()
         if (vkCreateImageView(mDevice->GetVKDevice(), &CreateInfo, nullptr, &mSwapChainImageViews[Index]) != VK_SUCCESS) {
             throw std::runtime_error("failed to create image views!");
         }
+        mFrameBuffer.emplace_back(new GVKFrameBuffer(mExtent2D.width, mExtent2D.height));
+        mFrameBufferTexture.emplace_back(new GVKTexture(mExtent2D.width, mExtent2D.height));
+        mFrameBufferTexture[Index]->SetVKImageAndView(mSwapChainImages[Index],mSwapChainImageViews[Index]);
+        mFrameBufferAttachments[Index].push_back(mFrameBufferTexture[Index]);
+        mFrameBuffer[Index]->SetAttachments(mFrameBufferAttachments[Index]);
     }
 }
 
 VkExtent2D GVKSwapChain::GetSwapChainExtent()
 {
     return mExtent2D;
+}
+
+VkFormat GVKSwapChain::GetSwapChainImgFormat()
+{
+    return mSurface->ChooseSurfaceFormat(mDevice->GetCurrentGPU()).format;
+}
+
+
+void  GVKSwapChain::SetRenderPass(GVKRenderPass *RenderPass)
+{
+    for(int Index =0; Index < SwapChainImageCount; Index++ )
+    {
+        RenderPass->SetFrameBuffer(mFrameBuffer[Index]);
+        mFrameBuffer[Index]->CreateFrameBuffer();
+    }
 }

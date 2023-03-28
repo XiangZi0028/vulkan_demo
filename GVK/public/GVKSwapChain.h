@@ -10,6 +10,8 @@ class GVKDevice;
 class GVKSurfaceKHR;
 class GVKQueue;
 class GVKTexture;
+class GVKFrameBuffer;
+class GVKRenderPass;
 class GVKSwapChain : public enable_shared_from_this<GVKSwapChain>
 {
 public:
@@ -19,11 +21,16 @@ public:
 	void CreateVKSwapChain();
     void GetSwapChainImage();
     void CreateImageViewsForSwapChainImages();
+    void SetRenderPass(GVKRenderPass* RenderPass);
     VkExtent2D GetSwapChainExtent();
+    VkFormat GetSwapChainImgFormat();
 private:
     VkExtent2D mExtent2D{};
     std::vector<VkImage> mSwapChainImages;
     std::vector<VkImageView> mSwapChainImageViews;
+    std::vector<GVKFrameBuffer*> mFrameBuffer;
+    std::vector<GVKTexture*> mFrameBufferTexture;
+    std::vector<std::vector<GVKTexture*>> mFrameBufferAttachments;
     uint32_t SwapChainImageCount = 0;
     GVKQueue *mQueue;
 	GVKDevice* mDevice;

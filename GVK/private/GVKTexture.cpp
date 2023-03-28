@@ -3,3 +3,10 @@
 //
 
 #include "GVKTexture.h"
+
+GVKTexture::GVKTexture(int ImgWidth, int ImgHeight)
+:mImgWidth(ImgWidth),mImgHeight(ImgHeight)
+{
+
+}
+

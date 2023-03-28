@@ -9,7 +9,5 @@ int main()
     app.Run();
     //不知道为什么不能在析构函数里面去调用
 
-    GVKShader *VertexShader = new GVKShader(ShaderType::VertexShader,std::string(SHADER_PATH)+ "Triangle_vert.spv");
-    VertexShader->Cleanup();
     return 0;
 }
