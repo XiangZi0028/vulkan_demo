@@ -12,9 +12,9 @@ class VulkanDevice;
 class VulkanCore : public enable_shared_from_this<VulkanCore>
 {
 public:
-	VulkanCore();
+	VulkanCore() {};
 	
-	~VulkanCore();
+	~VulkanCore() {};
 	void InitVKCore();
 private:
 	// Begine Create VkInstance
@@ -31,8 +31,8 @@ private:
 
 	//Begin Selcted GPU And Create Deviece
 	void SelecteGPUAndCreateDevice();
-	void InitDeivceExtensions();
-	void InitDeviceFeatures();
+	void InitDeivceExtensions() {};
+	void InitDeviceFeatures() {};
 	void CreateSwapChain();
 protected:
 	bool bEnableVsync = false;

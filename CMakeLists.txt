@@ -25,6 +25,7 @@ configure_file("${CMAKE_SOURCE_DIR}/ProjectInfoPath.h.in" "${CMAKE_SOURCE_DIR}/P
 
 add_subdirectory(3rd)
 add_subdirectory(GVK)
+add_subdirectory(VulkanRHI)
 link_directories(${CMAKE_CURRENT_BINARY_DIR}/Bin})
 include_directories(${CMAKE_CURRENT_SOURCE_DIR}/GVK/public ${CMAKE_CURRENT_SOURCE_DIR}/3rd/glfw/include ${CMAKE_CURRENT_SOURCE_DIR}/3rd/vulkan/include  ${CMAKE_CURRENT_SOURCE_DIR})
 add_executable(VlukanDemo main.cpp)

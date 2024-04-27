@@ -38,6 +38,7 @@ public:
 	EGpuType QueryGPUType();
 	void InitGPU();
 	void CreateDevice();
+
 private:
 	VkSurfaceKHR mSurface;
 	DefineMemberWithGetter(VkPhysicalDevice, Gpu)
