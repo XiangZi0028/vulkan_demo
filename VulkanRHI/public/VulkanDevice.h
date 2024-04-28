@@ -1,7 +1,8 @@
 #pragma once
 #include <vulkan/vulkan.h>
 #include <optional>
-#include"CommonMicro.h"
+#include "CommonMicro.h"
+#include "VulaknCommonDefine.h"
 
 struct QueueFamilyIndices {
 	std::optional<uint32_t> TransferFamily;
@@ -10,13 +11,13 @@ struct QueueFamilyIndices {
 	std::optional<uint32_t> PresentFamily;
 };
 
+class VulkanQueue;
 struct VulkanQueues {
-	std::optional<VkQueue> TransferQueue;
-	std::optional<VkQueue> GraphicsQueue;
-	std::optional<VkQueue> ComputeQueue;
-	std::optional<VkQueue> PresentQueue;
+	std::optional<shared_ptr<VulkanQueue>> TransferQueue;
+	std::optional<shared_ptr<VulkanQueue>> GraphicsQueue;
+	std::optional<shared_ptr<VulkanQueue>> ComputeQueue;
+	std::optional<shared_ptr<VulkanQueue>> PresentQueue;
 };
-
 class VulkanDevice : public enable_shared_from_this<VulkanDevice>
 {
 public:
@@ -31,15 +32,18 @@ public:
 	};
 public:
 	VulkanDevice(VkPhysicalDevice InGpu, VkSurfaceKHR InSurfaceKHR)
-		:mGpu(InGpu), mSurface(InSurfaceKHR)
+		:mGpu(InGpu), mSurface(InSurfaceKHR), mGpuType(EGpuType::Unknown)
 	{};
+	
 	~VulkanDevice() {};
-
+	
 	EGpuType QueryGPUType();
+
 	void InitGPU();
-	void CreateDevice();
+	
 
 private:
+	void CreateDevice();
 	VkSurfaceKHR mSurface;
 	DefineMemberWithGetter(VkPhysicalDevice, Gpu)
 	DefineMemberWithGetter(EGpuType, GpuType)

@@ -1,17 +1,15 @@
 #pragma once
 #include "CommonMicro.h"
+#include "VulaknCommonDefine.h"
 #include <vulkan/vulkan.h>
 class VulkanVertexBuffer;
 class VulkanDevice;
 class VulkanBufferResource : public enable_shared_from_this<VulkanBufferResource>
 {
 public:
-	~VulkanBufferResource() {};
-	
-private:
-	friend class VulkanVertexBuffer;
-	shared_ptr<VulkanBufferResource> Create(shared_ptr<VulkanDevice> inVulkanDevice, VkBufferUsageFlags inBufferUsageFlags, VkMemoryPropertyFlags inMemoryPropertyFlags, VkDeviceSize inBufferSize, void *data = nullptr);
+	~VulkanBufferResource();
 
+	shared_ptr<VulkanBufferResource> Create(shared_ptr<VulkanDevice> inVulkanDevice, VkBufferUsageFlags inBufferUsageFlags, VkMemoryPropertyFlags inMemoryPropertyFlags, VkDeviceSize inBufferSize, void* inData);
 private:
 	VulkanBufferResource(VkDevice inDevice)
 	: mVkDevice(inDevice)

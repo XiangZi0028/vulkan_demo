@@ -1,4 +1,5 @@
 #pragma once
+#include <vulkan/vulkan.h>
 #include<iostream>
 #include <vector>
 using namespace std;
@@ -35,12 +36,23 @@ public:\
   }\
   DefineMemberWithRefGetter(TYPE, MEMBER_NAME)
 
+
+//template<class T, class  ...Args>
+//static shared_ptr<T> NewSharedObject(Args... args)
+//{
+//    return make_shared<T>(args...);
+//}
+//
+//template<class T>
+//static shared_ptr<T> NewSharedObject()
+//{
+//    return make_shared<T>();
+//}
+
+
 template<class T>
 static void InitializeVkStructture(T& vkStruct, VkStructureType vkType)
 {
 	vkStruct.sType = vkType;
-	memset(((uint8*)&vkStruct) + sizeof(VkStructureType), 0, sizeof(T) - sizeof(VkStructureType));
+	memset(((uint8_t*)&vkStruct) + sizeof(VkStructureType), 0, sizeof(T) - sizeof(VkStructureType));
 }
-
-#define NEW_SHARED(TypeConstruct)\
-	(new TypeConstruct)->shared_from_this();

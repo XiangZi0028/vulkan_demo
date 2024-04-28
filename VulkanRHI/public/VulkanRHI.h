@@ -8,11 +8,16 @@
 #include <vulkan/vulkan.h>
 #include <iostream>
 #include "CommonMicro.h"
+#include "VulaknCommonDefine.h"
 class VulkanDevice;
+class VulkanSwapChain;
 class VulkanCore : public enable_shared_from_this<VulkanCore>
 {
 public:
-	VulkanCore() {};
+	VulkanCore()
+	:mWindow(nullptr)
+	{
+	};
 	
 	~VulkanCore() {};
 	void InitVKCore();
@@ -38,10 +43,10 @@ protected:
 	bool bEnableVsync = false;
 
 private:
-	std::shared_ptr<>
+	shared_ptr<VulkanSwapChain> mSwapChain;
 	VkPresentModeKHR mEnbalePresentMode;
 	VkInstance mVkInstance;
-	VkSurfaceKHR mVkSurface;
+	VkSurfaceKHR mVkSurface = nullptr;
 	TArray(const char*) mValidationLayers;
 	TArray(const char*) mInstanceExtensions;
 	TArray(VkExtensionProperties) mVKInstanceExtensions;

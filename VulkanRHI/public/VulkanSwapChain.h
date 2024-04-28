@@ -1,6 +1,7 @@
 #pragma once
-#include"CommonMicro.h"
-#include<vulkan/vulkan.h>
+#include "CommonMicro.h"
+#include <vulkan/vulkan.h>
+#include "VulaknCommonDefine.h"
 
 class VulkanSwapChain : public enable_shared_from_this<VulkanSwapChain>
 {

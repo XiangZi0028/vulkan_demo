@@ -7,7 +7,7 @@
 template<typename DataType>
 shared_ptr<VulkanVertexBuffer> VulkanVertexBuffer::CreateBuffer(shared_ptr<VulkanDevice>& inVulkanDevice, shared_ptr<VulkanCommandBuffer>& inCommandBuffer, TArray(DataType) inVertexData)
 {
-	shared_ptr<VulkanVertexBuffer> newVertexBuffer = NEW_SHARED(VulkanVertexBuffer(inVulkanDevice->GetDevice(), inIndices.size(), VkIndexType::VK_INDEX_TYPE_UINT32));
+	shared_ptr<VulkanVertexBuffer> newVertexBuffer = make_shared<VulkanVertexBuffer>(inVulkanDevice->GetDevice(), inIndices.size(), VkIndexType::VK_INDEX_TYPE_UINT32);
 	
 	shared_ptr<VulkanBufferResource> stagingBuffer = VulkanBufferResource::Create(inVulkanDevice,
 		VK_BUFFER_USAGE_TRANSFER_SRC_BIT,

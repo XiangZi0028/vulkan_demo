@@ -31,7 +31,7 @@ void VulkanCore::CreateInstance()
 	VkInstanceCreateInfo instanceInfo{};
 	instanceInfo.sType = VK_STRUCTURE_TYPE_INSTANCE_CREATE_INFO;
 	instanceInfo.pApplicationInfo = &appInfo;
-	instanceInfo.enabledExtensionCount = mInstanceExtensions.size();
+	instanceInfo.enabledExtensionCount = uint32_t(mInstanceExtensions.size());
 	instanceInfo.ppEnabledExtensionNames = mInstanceExtensions.data();
 	instanceInfo.enabledLayerCount = static_cast<uint32_t>(mValidationLayers.size());
 	instanceInfo.ppEnabledLayerNames = mValidationLayers.size() == 0 ? nullptr : mValidationLayers.data();
@@ -53,10 +53,16 @@ void VulkanCore::InitRequiredInstanceExtensions()
 	unsigned int glfwRequiredExtensionCount = 0;
 	const char** glfwRequiredInstanceExtension = glfwGetRequiredInstanceExtensions(&glfwRequiredExtensionCount);
 	//VK_KHR_SWAPCHAIN_EXTENSION_NAME 是设备扩展
-	for (int Index = 0; Index < glfwRequiredExtensionCount; Index++)
+	for (unsigned int Index = 0; Index < glfwRequiredExtensionCount; Index++)
 	{
 		mInstanceExtensions.push_back(((*glfwRequiredInstanceExtension) + Index));
 	}
+	//创建SurfaceKHR需要
+	mInstanceExtensions.push_back("VK_KHR_win32_surface");
+	//PresentMode 和 format需要
+	mInstanceExtensions.push_back("VK_KHR_surface");
+
+
 }
 
 void VulkanCore::EnumerateInstanceExtensionProperties()
@@ -124,14 +130,24 @@ bool VulkanCore::CheckExtensionsSupports()
 void VulkanCore::CreateSurface()
 {
 #if _WIN32
-	VkWin32SurfaceCreateInfoKHR CreateInfo = {};
-	CreateInfo.sType = VK_STRUCTURE_TYPE_WIN32_SURFACE_CREATE_INFO_KHR;
+	VkWin32SurfaceCreateInfoKHR CreateInfo;
+	InitializeVkStructture(CreateInfo, VK_STRUCTURE_TYPE_WIN32_SURFACE_CREATE_INFO_KHR);
 	CreateInfo.hinstance = GetModuleHandle(nullptr);
-	if (mWindow)
+	CreateInfo.pNext = nullptr;
+	if (!mWindow)
+	{
+		glfwInit();
+		glfwWindowHint(GLFW_CLIENT_API, GLFW_NO_API);
+		glfwWindowHint(GLFW_RESIZABLE, GLFW_FALSE);
+		mWindow = glfwCreateWindow(1024, 1024, "Vulkan", nullptr, nullptr);
+
+		CreateInfo.hwnd = glfwGetWin32Window(mWindow);
+	}
+	else
 	{
 		CreateInfo.hwnd = glfwGetWin32Window(mWindow);
 	}
-	if (vkCreateWin32SurfaceKHR(mVkInstance, &CreateInfo, nullptr, &mVkSurface))
+	if (VkResult Result = vkCreateWin32SurfaceKHR(mVkInstance, &CreateInfo, nullptr, &mVkSurface))
 	{
 		throw std::runtime_error("Faild to create window surface!");
 	}
@@ -152,7 +168,7 @@ void VulkanCore::SelecteGPUAndCreateDevice()
 	}
 	else
 	{
-		//VulkanDeviece.resize(GPUCount);
+		GPUs.resize(GPUCount);
 		mVkDeviceExtensions.resize(GPUCount);
 		vkEnumeratePhysicalDevices(mVkInstance, &GPUCount, GPUs.data());
 	}
@@ -174,13 +190,14 @@ void VulkanCore::SelecteGPUAndCreateDevice()
 
 	std::vector<int> integrateGpuIndexes;
 	std::vector<int> discreteGpuIndexes;
-	mVulkanDevieces.empty();
+	mVulkanDevieces.clear();
 	//给所有的显卡创建VulkanDevice,搜集独显和集显
 	int deviceIndex = -1;
 	for (auto Gpu : GPUs)
 	{
 		deviceIndex ++;
-		auto NewVulkanDevice = mVulkanDevieces.emplace_back(Gpu);
+		auto NewVulkanDevice = make_shared<VulkanDevice>(Gpu, mVkSurface);
+		mVulkanDevieces.push_back(NewVulkanDevice);
 		VulkanDevice::EGpuType gpuType = NewVulkanDevice->QueryGPUType();
 		if (gpuType == VulkanDevice::EGpuType::Integrate)
 		{
@@ -238,14 +255,15 @@ void VulkanCore::CreateSwapChain()
 
 	unsigned int presentModesNum = 0;
 	vkGetPhysicalDeviceSurfacePresentModesKHR(mVulkanDevieces[mEnabledDeviceIndex]->GetGpu(), mVkSurface, &presentModesNum, nullptr);
-	TArray(VkPresentModeKHR) presentModes(formatNum);
+	
+	TArray(VkPresentModeKHR) presentModes(presentModesNum);
 	vkGetPhysicalDeviceSurfacePresentModesKHR(mVulkanDevieces[mEnabledDeviceIndex]->GetGpu(), mVkSurface, &presentModesNum, presentModes.data());
 
 	bool bSupportPresentModeMailbox = false;
 	bool bSupportPresentModeFIFO = false;
 	bool bSupportPresentModeImmediate = false;
 
-	for (int Index = 0; Index < presentModesNum; ++Index)
+	for (unsigned int Index = 0; Index < presentModesNum; ++Index)
 	{
 		switch (presentModes[Index])
 		{
@@ -281,5 +299,5 @@ void VulkanCore::CreateSwapChain()
 		mEnbalePresentMode = presentModes[0];
 	}
 
-	mSwapChain = (new VulkanSwapChain())->shared_from_this();
+	mSwapChain = shared_ptr<VulkanSwapChain>(new VulkanSwapChain());
 }

@@ -1,4 +1,5 @@
 #include"VulkanRHI/public/VulkanDevice.h"
+#include"VulkanRHI/public/VulkanCommandBuffer.h"
 VulkanDevice::EGpuType VulkanDevice::QueryGPUType()
 {
 	if (mGpuType != EGpuType::Unknown)
@@ -28,12 +29,11 @@ VulkanDevice::EGpuType VulkanDevice::QueryGPUType()
 	default:
 		break;
 	}
-	return mGpuType;
-
 	unsigned int queueFamilyCount = 0;
 	vkGetPhysicalDeviceQueueFamilyProperties(mGpu, &queueFamilyCount, nullptr);
 	mQueueFamliyProperties.resize(queueFamilyCount);
 	vkGetPhysicalDeviceQueueFamilyProperties(mGpu, &queueFamilyCount, mQueueFamliyProperties.data());
+	return mGpuType;
 }
 
 void VulkanDevice::InitGPU()
@@ -62,7 +62,7 @@ void VulkanDevice::CreateDevice()
 		vkEnumerateDeviceExtensionProperties(device, layerName, &count, layerExtensions.data());
 	};
 	TArray(const char*) allLayerNames;
-	for (int Index = 0; Index < count; Index++)
+	for (unsigned int Index = 0; Index < count; Index++)
 	{
 		allLayerNames.push_back(GpuLayerProperties[Index].layerName);
 		enumerateDeviceLayerExtensionProperties(mGpu, GpuLayerProperties[Index].layerName, DeviceLayerExtensions[Index]);
@@ -101,9 +101,9 @@ void VulkanDevice::CreateDevice()
 
 	VkDeviceCreateInfo deviceCreateInfo;
 	InitializeVkStructture(deviceCreateInfo, VK_STRUCTURE_TYPE_DEVICE_CREATE_INFO);
-	deviceCreateInfo.enabledExtensionCount = allNeededExtensions.size();
+	deviceCreateInfo.enabledExtensionCount = uint32_t(allNeededExtensions.size());
 	deviceCreateInfo.ppEnabledExtensionNames = allNeededExtensions.data();
-	deviceCreateInfo.enabledLayerCount = allLayerNames.size();
+	deviceCreateInfo.enabledLayerCount = uint32_t(allLayerNames.size());
 	deviceCreateInfo.ppEnabledLayerNames = allLayerNames.data();
 	deviceCreateInfo.pEnabledFeatures = &mGpuFeature;
 
@@ -153,7 +153,7 @@ void VulkanDevice::CreateDevice()
 		}
 	}
 	deviceCreateInfo.pQueueCreateInfos = queueFamilyCreateInfos.data();
-	deviceCreateInfo.queueCreateInfoCount = queueFamilyCreateInfos.size();
+	deviceCreateInfo.queueCreateInfoCount = uint32_t(queueFamilyCreateInfos.size());
 
 	VkResult result = vkCreateDevice(mGpu, &deviceCreateInfo, nullptr, &mDevice);
 
@@ -162,8 +162,12 @@ void VulkanDevice::CreateDevice()
 		throw std::runtime_error("failed to create logic device");
 	}
 	//获取刚刚创建的Queue
-	vkGetDeviceQueue(mDevice, mQueueFamilyIndices.GraphicsFamily.value(), 0, &(mQueues.GraphicsQueue.value()));
-	vkGetDeviceQueue(mDevice, mQueueFamilyIndices.ComputeFamily.value(), 0, &(mQueues.ComputeQueue.value()));
-	vkGetDeviceQueue(mDevice, mQueueFamilyIndices.TransferFamily.value(), 0, &(mQueues.TransferQueue.value()));
-	vkGetDeviceQueue(mDevice, mQueueFamilyIndices.PresentFamily.value(), 0, &(mQueues.PresentQueue.value()));
+	shared_ptr<VulkanQueue> GraphicQueue = VulkanQueue::CreateQueue(this->shared_from_this(), mQueueFamilyIndices.GraphicsFamily.value());
+	shared_ptr<VulkanQueue> ComputeQueue = VulkanQueue::CreateQueue(this->shared_from_this(), mQueueFamilyIndices.ComputeFamily.value());
+	shared_ptr<VulkanQueue> TransferQueue = VulkanQueue::CreateQueue(this->shared_from_this(), mQueueFamilyIndices.TransferFamily.value());
+	shared_ptr<VulkanQueue> PresentQueue = VulkanQueue::CreateQueue(this->shared_from_this(), mQueueFamilyIndices.PresentFamily.value());
+	mQueues.GraphicsQueue = GraphicQueue;
+	mQueues.ComputeQueue = ComputeQueue;
+	mQueues.TransferQueue = TransferQueue;
+	mQueues.PresentQueue = PresentQueue;
 }

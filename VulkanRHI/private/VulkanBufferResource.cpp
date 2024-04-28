@@ -2,7 +2,7 @@
 #include <VulkanRHI/public/VulkanDevice.h>
 shared_ptr<VulkanBufferResource> VulkanBufferResource::Create(shared_ptr<VulkanDevice> inVulkanDevice, VkBufferUsageFlags inBufferUsageFlags, VkMemoryPropertyFlags inMemoryPropertyFlags, VkDeviceSize inBufferSize, void *inData)
 {
-	shared_ptr<VulkanBufferResource> newBufferResource = NEW_SHARED(VulkanBufferResource(inVulkanDevice->GetDevice()));
+	shared_ptr<VulkanBufferResource> newBufferResource(new VulkanBufferResource(inVulkanDevice->GetDevice()));
 	VkDevice device = newBufferResource->GetVkDeviceRef();
 	//CreateBuffer
 	VkBufferCreateInfo bufferCreateInfo;
@@ -43,7 +43,7 @@ shared_ptr<VulkanBufferResource> VulkanBufferResource::Create(shared_ptr<VulkanD
 	newBufferResource->SetBufferUsageFlags(inBufferUsageFlags);
 	newBufferResource->SetBufferSize(inBufferSize);
 	newBufferResource->SetAlocatedMemorySize(memroyRequirements.size);
-	newBufferResource->SetMemoryPropertyFlags = inMemoryPropertyFlags;
+	newBufferResource->SetMemoryPropertyFlags(inMemoryPropertyFlags);
 
 	//Bind buffer and memory
 	newBufferResource->Bind();
