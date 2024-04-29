@@ -1,6 +1,6 @@
 #pragma once
 #include "CommonMicro.h"
-#include "VulaknCommonDefine.h"
+#include "VulkanCommonDefine.h"
 #include <vulkan/vulkan.h>
 class VulkanVertexBuffer;
 class VulkanDevice;
@@ -9,7 +9,7 @@ class VulkanBufferResource : public enable_shared_from_this<VulkanBufferResource
 public:
 	~VulkanBufferResource();
 
-	shared_ptr<VulkanBufferResource> Create(shared_ptr<VulkanDevice> inVulkanDevice, VkBufferUsageFlags inBufferUsageFlags, VkMemoryPropertyFlags inMemoryPropertyFlags, VkDeviceSize inBufferSize, void* inData);
+	static shared_ptr<VulkanBufferResource> Create(shared_ptr<VulkanDevice> inVulkanDevice, VkBufferUsageFlags inBufferUsageFlags, VkMemoryPropertyFlags inMemoryPropertyFlags, VkDeviceSize inBufferSize, void* inData);
 private:
 	VulkanBufferResource(VkDevice inDevice)
 	: mVkDevice(inDevice)

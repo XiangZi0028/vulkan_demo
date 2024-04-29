@@ -2,7 +2,7 @@
 #include <vulkan/vulkan.h>
 #include <optional>
 #include "CommonMicro.h"
-#include "VulaknCommonDefine.h"
+#include "VulkanCommonDefine.h"
 
 struct QueueFamilyIndices {
 	std::optional<uint32_t> TransferFamily;

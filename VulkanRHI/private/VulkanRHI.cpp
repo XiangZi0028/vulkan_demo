@@ -3,7 +3,7 @@
 #define GLFW_EXPOSE_NATIVE_WIN32
 #include <GLFW/glfw3native.h>
 #include "VulkanRHI/public/VulkanSwapChain.h"
-void VulkanCore::InitVKCore()
+void VulkanCore::InitVKCore(uint32_t inWindowWith, uint32_t inWindowHeight, bool inEnableSurface)
 {
 	CreateInstance();
 	CreateSurface();
@@ -61,8 +61,6 @@ void VulkanCore::InitRequiredInstanceExtensions()
 	mInstanceExtensions.push_back("VK_KHR_win32_surface");
 	//PresentMode 和 format需要
 	mInstanceExtensions.push_back("VK_KHR_surface");
-
-
 }
 
 void VulkanCore::EnumerateInstanceExtensionProperties()
@@ -140,7 +138,6 @@ void VulkanCore::CreateSurface()
 		glfwWindowHint(GLFW_CLIENT_API, GLFW_NO_API);
 		glfwWindowHint(GLFW_RESIZABLE, GLFW_FALSE);
 		mWindow = glfwCreateWindow(1024, 1024, "Vulkan", nullptr, nullptr);
-
 		CreateInfo.hwnd = glfwGetWin32Window(mWindow);
 	}
 	else
@@ -248,56 +245,9 @@ void VulkanCore::SelecteGPUAndCreateDevice()
 void VulkanCore::CreateSwapChain()
 {
 	//这里东西后期应该调整到选择GPU的时候，作为考量GPU的标准
-	unsigned int formatNum = 0;
-	vkGetPhysicalDeviceSurfaceFormatsKHR(mVulkanDevieces[mEnabledDeviceIndex]->GetGpu(), mVkSurface, &formatNum, nullptr);
-	TArray(VkSurfaceFormatKHR) formats(formatNum);
-	vkGetPhysicalDeviceSurfaceFormatsKHR(mVulkanDevieces[mEnabledDeviceIndex]->GetGpu(), mVkSurface, &formatNum, formats.data());
+	VkPresentModeKHR desierdPresentMode =  VulkanSwapChain::GetDesierdPresentModel(mVulkanDevieces[mEnabledDeviceIndex], mVkSurface, bEnableVsync);
 
-	unsigned int presentModesNum = 0;
-	vkGetPhysicalDeviceSurfacePresentModesKHR(mVulkanDevieces[mEnabledDeviceIndex]->GetGpu(), mVkSurface, &presentModesNum, nullptr);
-	
-	TArray(VkPresentModeKHR) presentModes(presentModesNum);
-	vkGetPhysicalDeviceSurfacePresentModesKHR(mVulkanDevieces[mEnabledDeviceIndex]->GetGpu(), mVkSurface, &presentModesNum, presentModes.data());
+	VkSurfaceFormatKHR desierdSurfaceFormat = VulkanSwapChain::GetDesierdSurfaceFormat(mVulkanDevieces[mEnabledDeviceIndex], mVkSurface);
 
-	bool bSupportPresentModeMailbox = false;
-	bool bSupportPresentModeFIFO = false;
-	bool bSupportPresentModeImmediate = false;
-
-	for (unsigned int Index = 0; Index < presentModesNum; ++Index)
-	{
-		switch (presentModes[Index])
-		{
-		case VK_PRESENT_MODE_MAILBOX_KHR:
-			bSupportPresentModeMailbox = true;
-			break;
-		case VK_PRESENT_MODE_IMMEDIATE_KHR:
-			bSupportPresentModeImmediate = true;
-			break;
-		case VK_PRESENT_MODE_FIFO_KHR:
-			bSupportPresentModeFIFO = true;
-			break;
-		default:
-			break;
-		}
-	}
-	mEnbalePresentMode = VK_PRESENT_MODE_FIFO_KHR;
-	
-	if (!bEnableVsync && bSupportPresentModeImmediate)
-	{
-		mEnbalePresentMode = VK_PRESENT_MODE_IMMEDIATE_KHR;
-	}
-	else if (bSupportPresentModeMailbox)
-	{
-		mEnbalePresentMode = VK_PRESENT_MODE_MAILBOX_KHR;
-	}
-	else if (bSupportPresentModeFIFO)
-	{
-		mEnbalePresentMode = VK_PRESENT_MODE_FIFO_KHR;
-	}
-	else
-	{
-		mEnbalePresentMode = presentModes[0];
-	}
-
-	mSwapChain = shared_ptr<VulkanSwapChain>(new VulkanSwapChain());
+	mSwapChain = VulkanSwapChain::Create(mVkSurface, desierdPresentMode, desierdSurfaceFormat);
 }

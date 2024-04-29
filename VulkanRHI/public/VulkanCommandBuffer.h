@@ -1,7 +1,7 @@
 #pragma once
 #include "CommonMicro.h"
 #include "VulkanCommandBuffer.h"
-#include "VulaknCommonDefine.h"
+#include "VulkanCommonDefine.h"
 #include <vulkan/vulkan.h>
 
 class VulkanDevice;
@@ -60,7 +60,7 @@ public:
 	static shared_ptr<VulkanCommandBuffer> Create(shared_ptr<VulkanDevice> inDevice, shared_ptr<VulkanCommandPool> inCommandPool, VkCommandBufferLevel inCommandBufferLevel = VK_COMMAND_BUFFER_LEVEL_PRIMARY, shared_ptr<VulkanQueue> inQueue = nullptr);
 	void BeginCommandBuffer();
 	void EndCommandBuffer();
-	void SubmitCommandBuffer(VkSemaphore* signalSemaphore);
+	void SubmitCommandBuffer(VkSemaphore* signalSemaphore = nullptr);
 private:
 	VulkanCommandBuffer(shared_ptr<VulkanDevice> inDevice, shared_ptr<VulkanCommandPool> inCommandPool, VkCommandBufferLevel inCommandBufferLevel, shared_ptr<VulkanQueue> inQueue)
 	: mDevice(inDevice),
