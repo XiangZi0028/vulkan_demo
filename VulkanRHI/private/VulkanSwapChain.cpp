@@ -1,5 +1,6 @@
 #include "VulkanRHI/public/VulkanSwapChain.h"
 #include "VulkanRHI/public/VulkanDevice.h"
+#include "VulkanRHI/public/VulkanImage.h"
 
 VkPresentModeKHR VulkanSwapChain::GetDesierdPresentModel(const shared_ptr<VulkanDevice>& inVulkanDevice, VkSurfaceKHR inSurfaceKHR, bool inEnableVsync)
 {
@@ -82,9 +83,9 @@ VkSurfaceCapabilitiesKHR VulkanSwapChain::GetSurfaceCapabilities(const shared_pt
 	return SurfaceCapabilities;
 }
 
-shared_ptr<VulkanSwapChain> VulkanSwapChain::Create(VkSurfaceKHR inSurface, VkSurfaceCapabilitiesKHR inSurfaceCapabilities, VkPresentModeKHR inPresentMode, VkSurfaceFormatKHR inSurfaceFormat)
+shared_ptr<VulkanSwapChain> VulkanSwapChain::Create(shared_ptr<VulkanDevice> inDevice, VkSurfaceKHR inSurface, VkSurfaceCapabilitiesKHR inSurfaceCapabilities, VkPresentModeKHR inPresentMode, VkSurfaceFormatKHR inSurfaceFormat)
 {
-	shared_ptr<VulkanSwapChain> newVulkanSwapChain(new VulkanSwapChain(inSurface, inSurfaceCapabilities, inPresentMode, inSurfaceFormat));
+	shared_ptr<VulkanSwapChain> newVulkanSwapChain(new VulkanSwapChain(inDevice, inSurface, inSurfaceCapabilities, inPresentMode, inSurfaceFormat));
 	newVulkanSwapChain->InitVkSwapChain();
 	return nullptr;
 };
@@ -108,23 +109,23 @@ void VulkanSwapChain::InitVkSwapChain()
 	swapchainCretaeInfo.preTransform = mSurfaceCapabilities.currentTransform;//这个应该是屏幕旋转的时候使用？
 	swapchainCretaeInfo.clipped = true; 
 	swapchainCretaeInfo.compositeAlpha = VK_COMPOSITE_ALPHA_OPAQUE_BIT_KHR;//窗口和系统其它窗口的混合模式
-	swapchainCretaeInfo.flags = 
+	swapchainCretaeInfo.flags = VkSwapchainCreateFlagBitsKHR::VK_SWAPCHAIN_CREATE_SPLIT_INSTANCE_BIND_REGIONS_BIT_KHR;
 	swapchainCretaeInfo.queueFamilyIndexCount;
 	swapchainCretaeInfo.pQueueFamilyIndices;
-	/*
-		VkStructureType                  sType;
-		const void*                      pNext;
-		VkSwapchainCreateFlagsKHR        flags;
-		VkSurfaceKHR                     surface;
-		uint32_t                         queueFamilyIndexCount;
-		const uint32_t*                  pQueueFamilyIndices;
-		VkSurfaceTransformFlagBitsKHR    preTransform;
-		VkCompositeAlphaFlagBitsKHR      compositeAlpha;
-		VkPresentModeKHR                 presentMode;
-		VkBool32                         clipped;
-		VkSwapchainKHR                   oldSwapchain;
-	*/
 	swapchainCretaeInfo.surface = mSurface;
-
-	//vkCreateSwapchainKHR();
+	vkCreateSwapchainKHR(mDevice->GetDevice(), &swapchainCretaeInfo, nullptr, &mVkSwapChain);
+	
+	TArray(VkImage) imgs;
+	uint32_t swapChainImgCount = 0;
+	vkGetSwapchainImagesKHR(mDevice->GetDevice(), mVkSwapChain, &swapChainImgCount, nullptr);
+	imgs.resize(swapChainImgCount);
+	vkGetSwapchainImagesKHR(mDevice->GetDevice(), mVkSwapChain, &swapChainImgCount, imgs.data());
+	
+	for (auto& image : imgs)
+	{
+		mImages.push_back(image);
+		shared_ptr<VulkanImageView> imageView = VulkanImageView::Create(mVulkanDevice, image, VK_IMAGE_VIEW_TYPE_2D, VK_IMAGE_ASPECT_COLOR_BIT, mSurfaceFormat.format, 0, 1, 0, 1, false);
+		mImageViews.push_back(imageView);
+	}
+	
 }

@@ -43,14 +43,14 @@ private:
 		: mDevice(inDevice)
 		, mIATypes(inIATypes)
 		, mSingleAttributeSize(inSingleAttributeSize)
-		, mTotdalDataSize(totalDataSize)
+		, mTotalDataSize(totalDataSize)
 	{
 	};
 	void SetupVertexIADesc();
 	void SetupVertexInputBindingDesc();
 private:
 	DefineMemberWithGetterSetter(uint32_t,SingleAttributeSize);
-	DefineMemberWithGetterSetter(uint32_t,TotdalDataSize);
+	DefineMemberWithGetterSetter(uint32_t,TotalDataSize);
 	DefineMemberWithGetter(shared_ptr<VulkanDevice>, Device);
 	DefineMemberWithGetterSetter(TArray(EVertexIAType), IATypes);
 	DefineMemberWithGetterSetter(shared_ptr<VulkanBufferResource>, VulkanResourceBuffer);
