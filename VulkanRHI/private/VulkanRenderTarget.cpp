@@ -50,7 +50,7 @@ shared_ptr<VulkanRenderTarget> VulkanRenderTarget::CreateAttachment(EAttachmentT
 		default:
 			break;
 	};
-	shared_ptr<VulkanImage> newImg= VulkanImage::CreateAttachment(inDevice, inWith, inHeight, inFormat, attachmentUsage, imageAspect);
+	shared_ptr<VulkanImage> newImg = VulkanImage::CreateAttachment(inDevice, inWith, inHeight, inFormat, attachmentUsage, imageAspect);
 	
 	shared_ptr<VulkanRenderTarget> newRT(new VulkanRenderTarget(newImg, inAttachmentType));
 	return newRT;

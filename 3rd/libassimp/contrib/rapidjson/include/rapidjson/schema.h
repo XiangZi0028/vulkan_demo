@@ -1198,7 +1198,7 @@ private:
         const SchemaType* schema;
         const SchemaType* dependenciesSchema;
         SizeType dependenciesValidatorIndex;
-        bool* subpassDependency;
+        bool* dependencies;
         bool required;
     };
 

@@ -43,12 +43,14 @@ uint32_t VulkanImage::GetImageLayerCount(VkImageViewType inType, uint32_t inNumA
 		break;
 	}
 }
+
 void VulkanImage::InitImage(uint32_t inWidth, uint32_t inHeight, VkFormat inFormat)
 {
 	mImageSize.width = inWidth;
 	mImageSize.height = inHeight;
 	mFormat = inFormat;
 };
+
 shared_ptr<VulkanImage> VulkanImage::CreateTexture2D(shared_ptr<VulkanDevice> inDevice, uint32_t inWidth, uint32_t inHeight, VkImageUsageFlags inUsage, VkFormat inFormat, uint32_t inMipLevels, VkImageAspectFlags inImageAspect,  VkSampleCountFlagBits inSampleCount)
 {
 	//Create Image
@@ -99,7 +101,71 @@ shared_ptr<VulkanImage> VulkanImage::CreateTexture2D(shared_ptr<VulkanDevice> in
 	newVulkanImage->InitImage(inWidth, inHeight, inFormat);
 	return  newVulkanImage;
 }
+//void VulkanImage::GenerateImageCreateInfo(TextureDesc inTexDesc, shared_ptr<VulkanDevice> inDevice)
+//{
+//	VkImageTiling outImageTilling = VK_IMAGE_TILING_LINEAR;
+//	VkImageUsageFlags outImageUsage = (uint32_t)0;
+//	outImageUsage |= VK_IMAGE_USAGE_TRANSFER_DST_BIT;
+//	outImageUsage |= VK_IMAGE_USAGE_TRANSFER_SRC_BIT;
+//	outImageUsage |= VK_IMAGE_USAGE_SAMPLED_BIT;
+//	outImageTilling = inTexDesc.bForceLieanerTexture ? VK_IMAGE_TILING_LINEAR : GVulkanViewTypeTilingMode[7];
+//	//VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT
+//	switch (inTexDesc.mFlags)
+//	{
+//		case ETextureCreateFlags::TCF_NONE:
+//			break;
+//		case ETextureCreateFlags::TCF_Presentable:
+//		{
+//			outImageUsage |= VK_IMAGE_USAGE_STORAGE_BIT;
+//			break;
+//		};
+//		case ETextureCreateFlags::TCF_RenderTarget:
+//		case ETextureCreateFlags::TCF_DepthStencilRT:
+//		{
+//			if (inTexDesc.mFlags & ETextureCreateFlags::TCF_InputAttachmentRead)
+//			{
+//				outImageUsage |= VK_IMAGE_USAGE_INPUT_ATTACHMENT_BIT;
+//			}
+//			outImageUsage |= (inTextureCreateFlag & ETextureCreateFlags::TCF_RenderTarget) ? VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT : VK_IMAGE_USAGE_DEPTH_STENCIL_ATTACHMENT_BIT;
+//			outImageUsage |= VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT;
+//			break;
+//		};
+//		case ETextureCreateFlags::TCF_ResolveTarget:
+//		{
+//			outImageUsage |= VK_IMAGE_USAGE_DEPTH_STENCIL_ATTACHMENT_BIT
+//				break;
+//		};
+//		case ETextureCreateFlags::TCF_ResolveTarget:
+//		{
+//			outImageUsage |= VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT
+//				break;
+//		};
+//		case ETextureCreateFlags::TCF_ShaderResource:
+//		{
+//			outImageUsage |= VK_IMAGE_USAGE_SAMPLED_BIT;
+//			break;
+//		};
+//		case ETextureCreateFlags::TCF_SRGB:
+//			break;
+//		case ETextureCreateFlags::TCF_CPUWritable:
+//		{
+//			outImageUsage |= VK_IMAGE_USAGE_ATTACHMENT_FEEDBACK_LOOP_BIT_EXT
+//				break;
+//		}
+//		case ETextureCreateFlags::TCF_UAV:
+//		{
+//			break;
+//			outImageUsage |= VK_IMAGE_USAGE_STORAGE_BIT
+//		}
+//		default:
+//			break;
+//	}
+//}
 
+shared_ptr<VulkanImage> VulkanImage::CreateTexture(TextureDesc inTexDesc, shared_ptr<VulkanDevice> inDevice)
+{
+	return nullptr;
+}
 
 shared_ptr<VulkanImage> VulkanImage::CreateAttachment(shared_ptr<VulkanDevice> inDevice, uint32_t inWidth, uint32_t inHeight,
 	VkFormat inFormat,

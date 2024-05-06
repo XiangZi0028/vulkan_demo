@@ -68,41 +68,26 @@ int main()
 	shared_ptr<VulkanPipeline> Pipeline = VulkanPipeline::GetOrCreateGraphicsPipelineState(CurPipelineState, RenderPass , VkCore->GetDevice());
 	
 	Viewport viewPort(1024, 1024);
-	//CommandBuffer->BeginCommandBuffer();
-	//RenderPass->BeginRenderPass()
-	//	->SetViewport(viewPort)
-	//	->SetScissor(1024, 1024, 0, 0)
-	//	->BindPipeline()
-	//	->BindVertexBuffer(VertexBuffer)
-	//	->BindIndexBuffer(IndexBuffer)
-	//	->DrawVertex()
-	//	->EndRenderPass();
-	//CommandBuffer->EndCommandBuffer();
-	//VkSemaphoreCreateInfo CreateInfo;
-	//ZeroVulkanStruct(CreateInfo, VK_STRUCTURE_TYPE_SEMAPHORE_CREATE_INFO );
-	//VkSemaphore CmdSemaphore;
-	//vkCreateSemaphore(VkCore->GetDevice()->GetDevice(), &CreateInfo, nullptr, &CmdSemaphore);
-	//CommandBuffer->SubmitCommandBuffer(&CmdSemaphore);
+	CommandBuffer->BeginCommandBuffer();
+	RenderPass->BeginRenderPass()
+		->SetViewport(viewPort)
+		->SetScissor(1024, 1024, 0, 0)
+		->BindPipeline()
+		->BindVertexBuffer(VertexBuffer)
+		->BindIndexBuffer(IndexBuffer)
+		->DrawVertex()
+		->EndRenderPass();
+	CommandBuffer->EndCommandBuffer();
+	VkSemaphoreCreateInfo CreateInfo;
+	ZeroVulkanStruct(CreateInfo, VK_STRUCTURE_TYPE_SEMAPHORE_CREATE_INFO);
+	VkSemaphore CmdSemaphore;
+	vkCreateSemaphore(VkCore->GetDevice()->GetDevice(), &CreateInfo, nullptr, &CmdSemaphore);
+	CommandBuffer->SubmitCommandBuffer(&CmdSemaphore);
+	
 	//正常流程：创建RT的时候 有一张Image应该是作为Present使用的(这个图应该每帧去swap chain返回的images中去取)
 	//这里先直接加一个Draw，将被标记为swapchain的图绘制到frame buffer上。
 	while (true)
 	{
-		CommandBuffer->BeginCommandBuffer();
-		RenderPass->BeginRenderPass()
-			->SetViewport(viewPort)
-			->SetScissor(1024, 1024, 0, 0)
-			->BindPipeline()
-			->BindVertexBuffer(VertexBuffer)
-			->BindIndexBuffer(IndexBuffer)
-			->DrawVertex()
-			->EndRenderPass();
-		CommandBuffer->EndCommandBuffer();
-		VkSemaphoreCreateInfo CreateInfo;
-		ZeroVulkanStruct(CreateInfo, VK_STRUCTURE_TYPE_SEMAPHORE_CREATE_INFO);
-		VkSemaphore CmdSemaphore;
-		vkCreateSemaphore(VkCore->GetDevice()->GetDevice(), &CreateInfo, nullptr, &CmdSemaphore);
-		CommandBuffer->SubmitCommandBuffer(&CmdSemaphore);
-
 
 		CommandBuffer->BeginCommandBuffer();
 		VkImage dstImage = VkCore->GetSwapChain()->GetImages()[VkCore->GetSwapChain()->GetCurBackBufferIndex()];
