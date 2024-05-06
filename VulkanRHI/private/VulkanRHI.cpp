@@ -129,7 +129,7 @@ void VulkanCore::CreateSurface()
 {
 #if _WIN32
 	VkWin32SurfaceCreateInfoKHR CreateInfo;
-	InitializeVkStructture(CreateInfo, VK_STRUCTURE_TYPE_WIN32_SURFACE_CREATE_INFO_KHR);
+	ZeroVulkanStruct(CreateInfo, VK_STRUCTURE_TYPE_WIN32_SURFACE_CREATE_INFO_KHR);
 	CreateInfo.hinstance = GetModuleHandle(nullptr);
 	CreateInfo.pNext = nullptr;
 	if (!mWindow)
@@ -248,6 +248,20 @@ void VulkanCore::CreateSwapChain()
 	VkPresentModeKHR desierdPresentMode =  VulkanSwapChain::GetDesierdPresentModel(mVulkanDevieces[mEnabledDeviceIndex], mVkSurface, bEnableVsync);
 
 	VkSurfaceFormatKHR desierdSurfaceFormat = VulkanSwapChain::GetDesierdSurfaceFormat(mVulkanDevieces[mEnabledDeviceIndex], mVkSurface);
+	VkSurfaceCapabilitiesKHR surfaceCapability = VulkanSwapChain::GetSurfaceCapabilities(mVulkanDevieces[mEnabledDeviceIndex], mVkSurface);
 
-	mSwapChain = VulkanSwapChain::Create(mVkSurface, desierdPresentMode, desierdSurfaceFormat);
+	mSwapChain = VulkanSwapChain::Create(mVulkanDevieces[mEnabledDeviceIndex], mVkSurface, surfaceCapability, desierdPresentMode, desierdSurfaceFormat);
+	
 }
+
+
+
+//IMPL
+shared_ptr<VulkanDevice> VulkanCore::GetDevice()
+{
+	if (mEnabledDeviceIndex != -1)
+	{
+		return mVulkanDevieces[mEnabledDeviceIndex];
+	}
+	return nullptr;
+};

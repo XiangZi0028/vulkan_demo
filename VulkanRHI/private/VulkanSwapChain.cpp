@@ -1,6 +1,7 @@
 #include "VulkanRHI/public/VulkanSwapChain.h"
 #include "VulkanRHI/public/VulkanDevice.h"
 #include "VulkanRHI/public/VulkanImage.h"
+#include "VulkanRHI/public/VulkanCommandBuffer.h"
 
 VkPresentModeKHR VulkanSwapChain::GetDesierdPresentModel(const shared_ptr<VulkanDevice>& inVulkanDevice, VkSurfaceKHR inSurfaceKHR, bool inEnableVsync)
 {
@@ -59,11 +60,12 @@ VkSurfaceFormatKHR VulkanSwapChain::GetDesierdSurfaceFormat(const shared_ptr<Vul
 	uint32_t formatCount = 0;
 	vkGetPhysicalDeviceSurfaceFormatsKHR(inDevice->GetGpu(), inSurfaceKHR, &formatCount, nullptr);
 	TArray(VkSurfaceFormatKHR) formats;
+	formats.resize(formatCount);
 	vkGetPhysicalDeviceSurfaceFormatsKHR(inDevice->GetGpu(), inSurfaceKHR, &formatCount, formats.data());
 	//获取期望的Surface Format
 	VkSurfaceFormatKHR desiredSurfaceFormat;
 	desiredSurfaceFormat.colorSpace = VkColorSpaceKHR::VK_COLOR_SPACE_SRGB_NONLINEAR_KHR;
-	desiredSurfaceFormat.format = VkFormat::VK_FORMAT_R8G8B8A8_SRGB;
+	desiredSurfaceFormat.format = VkFormat::VK_FORMAT_B8G8R8A8_SRGB;
 
 	for (auto surfaceFormat : formats)
 	{
@@ -87,20 +89,21 @@ shared_ptr<VulkanSwapChain> VulkanSwapChain::Create(shared_ptr<VulkanDevice> inD
 {
 	shared_ptr<VulkanSwapChain> newVulkanSwapChain(new VulkanSwapChain(inDevice, inSurface, inSurfaceCapabilities, inPresentMode, inSurfaceFormat));
 	newVulkanSwapChain->InitVkSwapChain();
-	return nullptr;
+	return newVulkanSwapChain;
 };
 
 void VulkanSwapChain::InitVkSwapChain()
 {
 	VkSwapchainCreateInfoKHR swapchainCretaeInfo;
 
-	InitializeVkStructture(swapchainCretaeInfo, VK_STRUCTURE_TYPE_SWAPCHAIN_CREATE_INFO_KHR);
+	ZeroVulkanStruct(swapchainCretaeInfo, VK_STRUCTURE_TYPE_SWAPCHAIN_CREATE_INFO_KHR);
 
 	swapchainCretaeInfo.surface = mSurface;
 	swapchainCretaeInfo.presentMode = mPresentMode;
 	swapchainCretaeInfo.imageFormat = mSurfaceFormat.format;
 	swapchainCretaeInfo.imageColorSpace = mSurfaceFormat.colorSpace;
-	swapchainCretaeInfo.imageExtent = mSurfaceCapabilities.minImageExtent;
+	//swapchainCretaeInfo.imageExtent = mSurfaceCapabilities.minImageExtent;
+	swapchainCretaeInfo.imageExtent = mSurfaceCapabilities.maxImageExtent;
 	//后面需要考虑显卡是否支持，在选择physicaldevice的时候需要考虑capabilities
 	swapchainCretaeInfo.imageUsage = VK_IMAGE_USAGE_TRANSFER_DST_BIT | VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT | VK_IMAGE_USAGE_SAMPLED_BIT;;
 	swapchainCretaeInfo.imageSharingMode = VK_SHARING_MODE_EXCLUSIVE;
@@ -109,7 +112,7 @@ void VulkanSwapChain::InitVkSwapChain()
 	swapchainCretaeInfo.preTransform = mSurfaceCapabilities.currentTransform;//这个应该是屏幕旋转的时候使用？
 	swapchainCretaeInfo.clipped = true; 
 	swapchainCretaeInfo.compositeAlpha = VK_COMPOSITE_ALPHA_OPAQUE_BIT_KHR;//窗口和系统其它窗口的混合模式
-	swapchainCretaeInfo.flags = VkSwapchainCreateFlagBitsKHR::VK_SWAPCHAIN_CREATE_SPLIT_INSTANCE_BIND_REGIONS_BIT_KHR;
+	swapchainCretaeInfo.flags = 0;// VkSwapchainCreateFlagBitsKHR::VK_SWAPCHAIN_CREATE_SPLIT_INSTANCE_BIND_REGIONS_BIT_KHR;
 	swapchainCretaeInfo.queueFamilyIndexCount;
 	swapchainCretaeInfo.pQueueFamilyIndices;
 	swapchainCretaeInfo.surface = mSurface;
@@ -120,12 +123,103 @@ void VulkanSwapChain::InitVkSwapChain()
 	vkGetSwapchainImagesKHR(mDevice->GetDevice(), mVkSwapChain, &swapChainImgCount, nullptr);
 	imgs.resize(swapChainImgCount);
 	vkGetSwapchainImagesKHR(mDevice->GetDevice(), mVkSwapChain, &swapChainImgCount, imgs.data());
-	
 	for (auto& image : imgs)
 	{
 		mImages.push_back(image);
-		shared_ptr<VulkanImageView> imageView = VulkanImageView::Create(mVulkanDevice, image, VK_IMAGE_VIEW_TYPE_2D, VK_IMAGE_ASPECT_COLOR_BIT, mSurfaceFormat.format, 0, 1, 0, 1, false);
+		shared_ptr<VulkanImageView> imageView = VulkanImageView::Create(mDevice, image, VK_IMAGE_VIEW_TYPE_2D, VK_IMAGE_ASPECT_COLOR_BIT, mSurfaceFormat.format, 0, 1, 0, 1, false);
 		mImageViews.push_back(imageView);
+		//创建信号量
+		if (mUseSemaphore)
+		{
+			VkSemaphoreCreateInfo semaphoreCreateInfo;
+			semaphoreCreateInfo.flags = VK_FENCE_CREATE_SIGNALED_BIT;
+			ZeroVulkanStruct(semaphoreCreateInfo, VK_STRUCTURE_TYPE_SEMAPHORE_CREATE_INFO);
+			VkSemaphore semaphore;
+			vkCreateSemaphore(mDevice->GetDevice(), &semaphoreCreateInfo, nullptr, &semaphore);
+			mSemaphores.push_back(semaphore);
+		}
+		else
+		{
+			VkFenceCreateInfo fenceCreateInfo;
+			fenceCreateInfo.flags = VK_FENCE_CREATE_SIGNALED_BIT;
+			ZeroVulkanStruct(fenceCreateInfo, VK_STRUCTURE_TYPE_FENCE_CREATE_INFO);
+			VkFence fence;
+			vkCreateFence(mDevice->GetDevice(), &fenceCreateInfo, nullptr, &fence);
+		}
+	}
+	mPresentID = 0;
+}
+
+void VulkanSwapChain::AcquireNextImage(VkSemaphore* outSemaphore)
+{
+	uint32_t imageIndex = 0;
+	VkDevice device = mDevice->GetDevice();
+	const uint32_t prevSemaphoreIndex = mCurSemaphoreIndex;
+	VkResult result = VkResult::VK_SUCCESS;
+	if (mUseSemaphore)
+	{
+		mCurSemaphoreIndex = (mCurSemaphoreIndex + 1) % mSemaphores.size();
+		result = vkAcquireNextImageKHR(device, mVkSwapChain, 0xffffffffffffffff, mSemaphores[mCurSemaphoreIndex], VK_NULL_HANDLE, &imageIndex);
+	}
+	else
+	{
+		mCurSemaphoreIndex = (mCurSemaphoreIndex + 1) % mFences.size();
+		result = vkAcquireNextImageKHR(device, mVkSwapChain, 0xffffffffffffffff, VK_NULL_HANDLE, mFences[mCurSemaphoreIndex], &imageIndex);
 	}
 	
+	if (result == VK_ERROR_OUT_OF_DATE_KHR)
+	{
+		mCurSemaphoreIndex = prevSemaphoreIndex;
+	}
+	else if (result == VK_ERROR_SURFACE_LOST_KHR)
+	{
+		mCurSemaphoreIndex = prevSemaphoreIndex;
+	}
+	mCurBackBufferIndex = imageIndex;
+	outSemaphore = &mSemaphores[mCurSemaphoreIndex];
+}
+
+
+void VulkanSwapChain::Present(VkSemaphore inWaitSemaphore)
+{
+	//vkResetFences(mDevice, 1, &());
+	TArray(VkResult) presentResultes;
+	presentResultes.resize(1);
+	VkPresentInfoKHR presentInfo;
+	ZeroVulkanStruct(presentInfo, VK_STRUCTURE_TYPE_PRESENT_INFO_KHR);
+	presentInfo.pImageIndices = &mCurBackBufferIndex;
+	presentInfo.waitSemaphoreCount = 0;
+	if (inWaitSemaphore)
+	{
+		presentInfo.waitSemaphoreCount = 1;
+
+	}
+	presentInfo.pWaitSemaphores = &inWaitSemaphore;
+	presentInfo.swapchainCount = 1;
+	presentInfo.pSwapchains = &mVkSwapChain;
+	presentInfo.pResults = presentResultes.data();
+
+	auto GetPresentQueueFamily = [&]()
+	{
+		if (mDevice->GetQueues().PresentQueue.has_value())
+		{
+			return	mDevice->GetQueues().PresentQueue;
+		}
+		return	mDevice->GetQueues().PresentQueue;
+	};
+	shared_ptr<VulkanQueue> presentQueue= GetPresentQueueFamily().value();
+	VkResult presentResult = vkQueuePresentKHR(presentQueue->GetVkQueueRef(), &presentInfo);
+}
+
+
+VulkanSwapChain::~VulkanSwapChain()
+{
+	/*VkDevice device = m_Device->GetInstanceHandle();
+
+	for (int32 index = 0; index < m_ImageAcquiredSemaphore.size(); ++index) {
+		vkDestroySemaphore(m_Device->GetInstanceHandle(), m_ImageAcquiredSemaphore[index], VULKAN_CPU_ALLOCATOR);
+	}
+
+	vkDestroySwapchainKHR(device, m_SwapChain, VULKAN_CPU_ALLOCATOR);
+	vkDestroySurfaceKHR(m_Instance, m_Surface, VULKAN_CPU_ALLOCATOR);*/
 }

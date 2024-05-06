@@ -100,7 +100,7 @@ void VulkanDevice::CreateDevice()
 
 
 	VkDeviceCreateInfo deviceCreateInfo;
-	InitializeVkStructture(deviceCreateInfo, VK_STRUCTURE_TYPE_DEVICE_CREATE_INFO);
+	ZeroVulkanStruct(deviceCreateInfo, VK_STRUCTURE_TYPE_DEVICE_CREATE_INFO);
 	deviceCreateInfo.enabledExtensionCount = uint32_t(allNeededExtensions.size());
 	deviceCreateInfo.ppEnabledExtensionNames = allNeededExtensions.data();
 	deviceCreateInfo.enabledLayerCount = uint32_t(allLayerNames.size());
@@ -109,6 +109,8 @@ void VulkanDevice::CreateDevice()
 
 	//根据QueueFamily
 	TArray(VkDeviceQueueCreateInfo) queueFamilyCreateInfos;
+	TArray(float) queuePriorities; 
+	queuePriorities.resize(100,1);
 
 	for (int Index = 0; Index < mQueueFamliyProperties.size(); Index++)
 	{
@@ -142,19 +144,21 @@ void VulkanDevice::CreateDevice()
 		if (bQueueHasUsage)
 		{
 			VkDeviceQueueCreateInfo queueCreateInfo;
+			//queueCreateInfo.flags = VK_DEVICE_QUEUE_CREATE_PROTECTED_BIT;
 			queueCreateInfo.queueFamilyIndex = Index;
 			queueCreateInfo.sType = VK_STRUCTURE_TYPE_DEVICE_QUEUE_CREATE_INFO;
 			queueCreateInfo.pNext = nullptr;
 			queueCreateInfo.queueCount = queueFamliyProperties.queueCount;
-			float Priorities = 0;
-			Priorities += queueFamliyProperties.queueCount;
-			queueCreateInfo.pQueuePriorities = &Priorities;//这里我默认Queue的数量越多优先级越高
+			queueCreateInfo.flags = 0;
+			//float& Priority = queuePriorities[queuePriorities.size()-1];
+			//Priority += Index / queueFamliyProperties.queueCount;
+			queueCreateInfo.pQueuePriorities = queuePriorities.data();//这里我默认Queue的数量越多优先级越高
 			queueFamilyCreateInfos.push_back(queueCreateInfo);
 		}
 	}
 	deviceCreateInfo.pQueueCreateInfos = queueFamilyCreateInfos.data();
 	deviceCreateInfo.queueCreateInfoCount = uint32_t(queueFamilyCreateInfos.size());
-
+	deviceCreateInfo.flags = 0;
 	VkResult result = vkCreateDevice(mGpu, &deviceCreateInfo, nullptr, &mDevice);
 
 	if (result == VK_ERROR_INITIALIZATION_FAILED)
@@ -170,4 +174,21 @@ void VulkanDevice::CreateDevice()
 	mQueues.ComputeQueue = ComputeQueue;
 	mQueues.TransferQueue = TransferQueue;
 	mQueues.PresentQueue = PresentQueue;
+}
+
+
+const VkFormatProperties& VulkanDevice::GetPhysicalDeviceFormatProperties(VkFormat inFormat)
+{
+	auto it = mFormatProperties.find(inFormat);
+	if (it != mFormatProperties.end())
+	{
+		return *(it->second);
+	}
+	else
+	{
+		VkFormatProperties* newVkFormatProperties = new VkFormatProperties();
+		vkGetPhysicalDeviceFormatProperties(mGpu, inFormat, newVkFormatProperties);
+		mFormatProperties[inFormat] = newVkFormatProperties;
+		return *(newVkFormatProperties);
+	}
 }

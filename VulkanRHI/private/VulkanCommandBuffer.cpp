@@ -48,9 +48,9 @@ shared_ptr<VulkanCommandPool> VulkanCommandPool::CreateCommandPool(shared_ptr<Vu
 		break;
 	}
 	VkCommandPoolCreateInfo commandPoolCreateInfo;
-	InitializeVkStructture(commandPoolCreateInfo, VK_STRUCTURE_TYPE_COMMAND_POOL_CREATE_INFO);
+	ZeroVulkanStruct(commandPoolCreateInfo, VK_STRUCTURE_TYPE_COMMAND_POOL_CREATE_INFO);
 	commandPoolCreateInfo.queueFamilyIndex = inDevice->GetQueueFamilyIndices().GraphicsFamily.value();
-	commandPoolCreateInfo.flags = VK_COMMAND_POOL_CREATE_TRANSIENT_BIT;
+	commandPoolCreateInfo.flags = VK_COMMAND_POOL_CREATE_TRANSIENT_BIT | VK_COMMAND_POOL_CREATE_RESET_COMMAND_BUFFER_BIT;
 	vkCreateCommandPool(inDevice->GetDevice(), &commandPoolCreateInfo, nullptr, &(newCommandPool->GetVkCommandPoolRef()));
 
 	return newCommandPool;
@@ -58,26 +58,26 @@ shared_ptr<VulkanCommandPool> VulkanCommandPool::CreateCommandPool(shared_ptr<Vu
 
 //VulkanCommandBuffer
 //存在问题：这里虽然queue可以去拿默认的指定的队列，但是commandPool怎么办。commandpool按理说需要去拿和queue对应的才行
-shared_ptr<VulkanCommandBuffer> VulkanCommandBuffer::Create(shared_ptr<VulkanDevice> inDevice, shared_ptr<VulkanCommandPool> inCommandPool, VkCommandBufferLevel inCommandBufferLevel, shared_ptr<VulkanQueue> inQueue)
+shared_ptr<VulkanCommandBuffer> VulkanCommandBuffer::Create(shared_ptr<VulkanCommandPool> inCommandPool, VkCommandBufferLevel inCommandBufferLevel, shared_ptr<VulkanQueue> inQueue)
 {
 	if (!inQueue)
 	{
-		inQueue = inDevice->GetQueues().GraphicsQueue.value();
+		inQueue = inCommandPool->mDevice->GetQueues().GraphicsQueue.value();
 	}
 
-	shared_ptr<VulkanCommandBuffer> newCommandBuffer(new VulkanCommandBuffer(inDevice, inCommandPool, inCommandBufferLevel, inQueue));
+	shared_ptr<VulkanCommandBuffer> newCommandBuffer(new VulkanCommandBuffer(inCommandPool->mDevice, inCommandPool, inCommandBufferLevel, inQueue));
 
 	VkCommandBufferAllocateInfo commandBufferAllocateInfo;
-	InitializeVkStructture(commandBufferAllocateInfo, VK_STRUCTURE_TYPE_COMMAND_BUFFER_ALLOCATE_INFO);
+	ZeroVulkanStruct(commandBufferAllocateInfo, VK_STRUCTURE_TYPE_COMMAND_BUFFER_ALLOCATE_INFO);
 	commandBufferAllocateInfo.commandPool = inCommandPool->GetVkCommandPoolRef();
 	commandBufferAllocateInfo.level = inCommandBufferLevel;
 	commandBufferAllocateInfo.commandBufferCount = 1;
-	vkAllocateCommandBuffers(inDevice->GetDevice(), &commandBufferAllocateInfo, &(newCommandBuffer->GetCommandBufferRef()));
+	vkAllocateCommandBuffers(inCommandPool->mDevice->GetDevice(), &commandBufferAllocateInfo, &(newCommandBuffer->GetCommandBufferRef()));
 	
 	VkFenceCreateInfo fenceCreateInfo;
-	InitializeVkStructture(fenceCreateInfo, VK_STRUCTURE_TYPE_FENCE_CREATE_INFO);
+	ZeroVulkanStruct(fenceCreateInfo, VK_STRUCTURE_TYPE_FENCE_CREATE_INFO);
 	fenceCreateInfo.flags = 0;
-	vkCreateFence(inDevice->GetDevice(), &fenceCreateInfo, nullptr, &(newCommandBuffer->GetVkFenceRef()));
+	vkCreateFence(inCommandPool->mDevice->GetDevice(), &fenceCreateInfo, nullptr, &(newCommandBuffer->GetVkFenceRef()));
 	inCommandPool->AddCommandBuffer(newCommandBuffer);
 	return newCommandBuffer;
 }
@@ -89,8 +89,8 @@ void VulkanCommandBuffer::BeginCommandBuffer()
 		return;
 	}
 	VkCommandBufferBeginInfo beginCommandBufferInfo;
-	InitializeVkStructture(beginCommandBufferInfo, VK_STRUCTURE_TYPE_COMMAND_BUFFER_BEGIN_INFO);
-	beginCommandBufferInfo.flags = VK_COMMAND_BUFFER_USAGE_ONE_TIME_SUBMIT_BIT;
+	ZeroVulkanStruct(beginCommandBufferInfo, VK_STRUCTURE_TYPE_COMMAND_BUFFER_BEGIN_INFO);
+	beginCommandBufferInfo.flags = VK_COMMAND_BUFFER_USAGE_SIMULTANEOUS_USE_BIT;//VK_COMMAND_BUFFER_USAGE_RENDER_PASS_CONTINUE_BIT;//VK_COMMAND_BUFFER_USAGE_ONE_TIME_SUBMIT_BIT;
 	vkBeginCommandBuffer(mCommandBuffer, &beginCommandBufferInfo);
 	bIsBegun = true;
 }
@@ -110,7 +110,7 @@ void VulkanCommandBuffer::SubmitCommandBuffer(VkSemaphore* signalSemaphore)
 	//make sure before submit
 	EndCommandBuffer();
 	VkSubmitInfo submitInfo;
-	InitializeVkStructture(submitInfo, VK_STRUCTURE_TYPE_SUBMIT_INFO);
+	ZeroVulkanStruct(submitInfo, VK_STRUCTURE_TYPE_SUBMIT_INFO);
 	submitInfo.commandBufferCount = 1;
 	submitInfo.pCommandBuffers = &mCommandBuffer;
 	submitInfo.pSignalSemaphores = signalSemaphore;

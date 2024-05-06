@@ -1,6 +1,8 @@
 #pragma once
 #include <vulkan/vulkan.h>
 #include <optional>
+#include <map>
+#include <unordered_map>
 #include "CommonMicro.h"
 #include "VulkanCommonDefine.h"
 
@@ -40,7 +42,8 @@ public:
 	EGpuType QueryGPUType();
 
 	void InitGPU();
-	
+
+	const VkFormatProperties& GetPhysicalDeviceFormatProperties(VkFormat inFormat);
 
 private:
 	void CreateDevice();
@@ -56,5 +59,5 @@ private:
 	TArray(VkQueueFamilyProperties) mQueueFamliyProperties;
 	DefineMemberWithGetter(QueueFamilyIndices, QueueFamilyIndices)
 	DefineMemberWithGetter(VulkanQueues, Queues)
-		
+	std::unordered_map<VkFormat, VkFormatProperties*> mFormatProperties;
 };

@@ -7,14 +7,14 @@
 #include <vulkan/vulkan.h>
 
 //Index Buffer
-shared_ptr<VulkanIndexBuffer> VulkanIndexBuffer::CreateBuffer(shared_ptr<VulkanDevice>& inVulkanDevice, shared_ptr<VulkanCommandBuffer>& inCommandBuffer, TArray(uint32_t) inIndicsesData)
+shared_ptr<VulkanIndexBuffer> VulkanIndexBuffer::Create(shared_ptr<VulkanDevice>& inVulkanDevice, shared_ptr<VulkanCommandBuffer>& inCommandBuffer, const TArray(uint32_t)& inIndicsesData)
 {
 	shared_ptr<VulkanIndexBuffer> newVertexBuffer(new VulkanIndexBuffer(inVulkanDevice, inIndicsesData.size(), VkIndexType::VK_INDEX_TYPE_UINT32));
 	newVertexBuffer->UploadBuffer(inCommandBuffer, inIndicsesData);
 	return newVertexBuffer;
 }
 
-shared_ptr<VulkanIndexBuffer> VulkanIndexBuffer::CreateBuffer(shared_ptr<VulkanDevice>& inVulkanDevice, shared_ptr<VulkanCommandBuffer>& inCommandBuffer, TArray(uint16_t) inIndicsesData)
+shared_ptr<VulkanIndexBuffer> VulkanIndexBuffer::Create(shared_ptr<VulkanDevice>& inVulkanDevice, shared_ptr<VulkanCommandBuffer>& inCommandBuffer, const TArray(uint16_t)& inIndicsesData)
 {
 	shared_ptr<VulkanIndexBuffer> newVertexBuffer(new VulkanIndexBuffer(inVulkanDevice, inIndicsesData.size(), VkIndexType::VK_INDEX_TYPE_UINT16));
 	newVertexBuffer->UploadBuffer(inCommandBuffer, inIndicsesData);
@@ -31,7 +31,7 @@ void VulkanIndexBuffer::UploadBuffer(shared_ptr<VulkanCommandBuffer>& inCommandB
 		inIndicsesData.data());
 
 	shared_ptr<VulkanBufferResource> mVulkanResourceBuffer = VulkanBufferResource::Create(mDevice,
-		VK_BUFFER_USAGE_VERTEX_BUFFER_BIT | VK_BUFFER_USAGE_TRANSFER_DST_BIT,
+		VK_BUFFER_USAGE_INDEX_BUFFER_BIT | VK_BUFFER_USAGE_TRANSFER_DST_BIT,
 		VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT,
 		inIndicsesData.size() * sizeof(DataType),
 		nullptr );
@@ -48,7 +48,7 @@ void VulkanIndexBuffer::UploadBuffer(shared_ptr<VulkanCommandBuffer>& inCommandB
 	stagingBuffer.reset();
 }
 
-VulkanIndexBuffer::VulkanIndexBuffer(shared_ptr<VulkanDevice> inDevice, int inIndexCount, VkIndexType inIndexType)
+VulkanIndexBuffer::VulkanIndexBuffer(shared_ptr<VulkanDevice> inDevice, uint32_t inIndexCount, VkIndexType inIndexType)
 	: mDevice(inDevice)
 	, mIndexCount(inIndexCount)
 	, mVkIndexType(inIndexType)
@@ -59,10 +59,14 @@ VulkanIndexBuffer::VulkanIndexBuffer(shared_ptr<VulkanDevice> inDevice, int inIn
 
 
 //Vertex Buffer
-shared_ptr<VulkanVertexBuffer> VulkanVertexBuffer::Create(shared_ptr<VulkanDevice> inDevice, shared_ptr<VulkanCommandBuffer> inCommandBuffer, TArray(float) inVertexData, TArray(EVertexIAType) inIATypes)
+shared_ptr<VulkanVertexBuffer> VulkanVertexBuffer::Create(shared_ptr<VulkanDevice> inDevice, shared_ptr<VulkanCommandBuffer> inCommandBuffer, const TArray(float)& inVertexData, const TArray(EVertexIAType)& inIATypes)
 {
 	uint32_t singleVertexIASize = GetVertexIATypesTotalSize(inIATypes);
 	uint32_t VertexDataSize = inVertexData.size() * sizeof(float);
+	if (singleVertexIASize == 0 || VertexDataSize == 0)
+	{
+		return nullptr;
+	}
 	if ((VertexDataSize % singleVertexIASize) != 0)
 	{
 		throw std::runtime_error("The entered vertex data size does not match the vertex attribute!");
@@ -75,7 +79,7 @@ shared_ptr<VulkanVertexBuffer> VulkanVertexBuffer::Create(shared_ptr<VulkanDevic
 		VertexDataSize,
 		inVertexData.data());
 
-	shared_ptr<VulkanBufferResource> mVulkanResourceBuffer = VulkanBufferResource::Create(mDevice,
+	shared_ptr<VulkanBufferResource> mVulkanResourceBuffer = VulkanBufferResource::Create(inDevice,
 		VK_BUFFER_USAGE_VERTEX_BUFFER_BIT | VK_BUFFER_USAGE_TRANSFER_DST_BIT,
 		VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT,
 		VertexDataSize,

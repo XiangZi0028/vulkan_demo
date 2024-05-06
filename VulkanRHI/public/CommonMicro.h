@@ -6,6 +6,14 @@ using namespace std;
 #define TArray(Type)\
 	std::vector<Type>
 
+#define DefineMemberDefaultWithGetter(TYPE, MEMBER_NAME, VALUE)\
+public:\
+  TYPE Get##MEMBER_NAME() {\
+    return m##MEMBER_NAME;\
+  };\
+private:\
+  TYPE m##MEMBER_NAME = VALUE;
+
 #define DefineMemberWithGetter(TYPE, MEMBER_NAME)\
 public:\
   TYPE Get##MEMBER_NAME() {\
@@ -51,7 +59,7 @@ public:\
 
 
 template<class T>
-static void InitializeVkStructture(T& vkStruct, VkStructureType vkType)
+static void ZeroVulkanStruct(T& vkStruct, VkStructureType vkType)
 {
 	vkStruct.sType = vkType;
 	memset(((uint8_t*)&vkStruct) + sizeof(VkStructureType), 0, sizeof(T) - sizeof(VkStructureType));

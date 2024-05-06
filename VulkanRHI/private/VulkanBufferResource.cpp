@@ -1,12 +1,12 @@
 #include <VulkanRHI/public/VulkanBufferResource.h>
 #include <VulkanRHI/public/VulkanDevice.h>
-shared_ptr<VulkanBufferResource> VulkanBufferResource::Create(shared_ptr<VulkanDevice> inVulkanDevice, VkBufferUsageFlags inBufferUsageFlags, VkMemoryPropertyFlags inMemoryPropertyFlags, VkDeviceSize inBufferSize, void *inData)
+shared_ptr<VulkanBufferResource> VulkanBufferResource::Create(shared_ptr<VulkanDevice> inVulkanDevice, VkBufferUsageFlags inBufferUsageFlags, VkMemoryPropertyFlags inMemoryPropertyFlags, VkDeviceSize inBufferSize, const void *inData)
 {
 	shared_ptr<VulkanBufferResource> newBufferResource(new VulkanBufferResource(inVulkanDevice->GetDevice()));
 	VkDevice device = newBufferResource->GetVkDeviceRef();
 	//CreateBuffer
 	VkBufferCreateInfo bufferCreateInfo;
-	InitializeVkStructture(bufferCreateInfo, VK_STRUCTURE_TYPE_BUFFER_CREATE_INFO);
+	ZeroVulkanStruct(bufferCreateInfo, VK_STRUCTURE_TYPE_BUFFER_CREATE_INFO);
 	bufferCreateInfo.usage = inBufferUsageFlags;
 	bufferCreateInfo.size = inBufferSize;
 	if (vkCreateBuffer(device, &bufferCreateInfo, nullptr, &(newBufferResource->GetVkBufferRef())) != VkResult::VK_SUCCESS)
@@ -34,7 +34,7 @@ shared_ptr<VulkanBufferResource> VulkanBufferResource::Create(shared_ptr<VulkanD
 	}
 	//Allocated memory
 	VkMemoryAllocateInfo memoryAllocatInfo;
-	InitializeVkStructture(memoryAllocatInfo, VK_STRUCTURE_TYPE_MEMORY_ALLOCATE_INFO);
+	ZeroVulkanStruct(memoryAllocatInfo, VK_STRUCTURE_TYPE_MEMORY_ALLOCATE_INFO);
 	memoryAllocatInfo.allocationSize = memroyRequirements.size;
 	memoryAllocatInfo.memoryTypeIndex = memoryTypeIndex;
 	vkAllocateMemory(device, &memoryAllocatInfo, nullptr, &(newBufferResource->GetVkDeviceMemoryRef()));
@@ -52,7 +52,7 @@ shared_ptr<VulkanBufferResource> VulkanBufferResource::Create(shared_ptr<VulkanD
 	if (inData)
 	{
 		newBufferResource->Map();
-		memcpy(newBufferResource->GetMappedRef(), inData, inBufferSize);
+		memcpy(newBufferResource->GetMapped(), inData, inBufferSize);
 		if ((inMemoryPropertyFlags & VK_MEMORY_PROPERTY_HOST_COHERENT_BIT) == 0)
 		{
 			newBufferResource->Flush();
@@ -89,7 +89,7 @@ void VulkanBufferResource::UnMap()
 VkResult VulkanBufferResource::Flush(VkDeviceSize inSize, VkDeviceSize inOffset)
 {
 	VkMappedMemoryRange mappedRange;
-	InitializeVkStructture(mappedRange, VK_STRUCTURE_TYPE_MAPPED_MEMORY_RANGE);
+	ZeroVulkanStruct(mappedRange, VK_STRUCTURE_TYPE_MAPPED_MEMORY_RANGE);
 	mappedRange.memory = mVkDeviceMemory;
 	mappedRange.offset = inOffset;
 	mappedRange.size = inSize;
@@ -99,7 +99,7 @@ VkResult VulkanBufferResource::Flush(VkDeviceSize inSize, VkDeviceSize inOffset)
 VkResult VulkanBufferResource::Invalidate(VkDeviceSize inSize, VkDeviceSize inOffset)
 {
 	VkMappedMemoryRange mappedRange;
-	InitializeVkStructture(mappedRange, VK_STRUCTURE_TYPE_MAPPED_MEMORY_RANGE);
+	ZeroVulkanStruct(mappedRange, VK_STRUCTURE_TYPE_MAPPED_MEMORY_RANGE);
 	mappedRange.memory = mVkDeviceMemory;
 	mappedRange.offset = inOffset;
 	mappedRange.size = inSize;
@@ -108,7 +108,7 @@ VkResult VulkanBufferResource::Invalidate(VkDeviceSize inSize, VkDeviceSize inOf
 
 VulkanBufferResource::~VulkanBufferResource()
 {
-	Invalidate();
+	//Invalidate();
 	if (mVkBuffer != VK_NULL_HANDLE)
 	{
 		vkDestroyBuffer(mVkDevice, mVkBuffer, nullptr);

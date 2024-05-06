@@ -22,6 +22,8 @@ public:
 	~VulkanCore() {};
 	void InitVKCore(uint32_t inWindowWith = 0, uint32_t inWindowHeight = 0, bool inEnableSurface = true);
 	void ResetWindowExtent(uint32_t inWindowWith, uint32_t inWindowHeight) { mWindowWidth = inWindowWith;  mWindowHeight = inWindowHeight; };
+	//IMPL
+	shared_ptr<VulkanDevice> GetDevice();
 private:
 	// Begine Create VkInstance
 	void CreateInstance();
@@ -40,13 +42,13 @@ private:
 	void InitDeivceExtensions() {};
 	void InitDeviceFeatures() {};
 	void CreateSwapChain();
+	
 protected:
 	bool bEnableVsync = false;
 	uint32_t mWindowWidth;
 	uint32_t mWindowHeight;
 private:
 	int mEnabledDeviceIndex = -1;
-	shared_ptr<VulkanSwapChain> mSwapChain;
 	VkPresentModeKHR mEnbalePresentMode;
 	VkInstance mVkInstance;
 	VkSurfaceKHR mVkSurface = nullptr;
@@ -58,6 +60,7 @@ private:
 	TArray(const char*) mDeviceExtensions;
 	TArray(TArray(VkExtensionProperties)) mVkDeviceExtensions;
 	TArray(std::shared_ptr<VulkanDevice>) mVulkanDevieces;
+	DefineMemberWithGetter(shared_ptr<VulkanSwapChain>, SwapChain)
 	DefineMemberWithGetterSetter(GLFWwindow*, Window)
 	
 };

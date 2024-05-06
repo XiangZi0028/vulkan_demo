@@ -9,7 +9,7 @@ class VulkanBufferResource : public enable_shared_from_this<VulkanBufferResource
 public:
 	~VulkanBufferResource();
 
-	static shared_ptr<VulkanBufferResource> Create(shared_ptr<VulkanDevice> inVulkanDevice, VkBufferUsageFlags inBufferUsageFlags, VkMemoryPropertyFlags inMemoryPropertyFlags, VkDeviceSize inBufferSize, void* inData);
+	static shared_ptr<VulkanBufferResource> Create(shared_ptr<VulkanDevice> inVulkanDevice, VkBufferUsageFlags inBufferUsageFlags, VkMemoryPropertyFlags inMemoryPropertyFlags, VkDeviceSize inBufferSize, const void* inData);
 private:
 	VulkanBufferResource(VkDevice inDevice)
 	: mVkDevice(inDevice)
@@ -29,7 +29,7 @@ private:
 	DefineMemberWithGetterRefSetter(VkDeviceSize, BufferSize)
 	DefineMemberWithGetterRefSetter(VkDeviceSize, AlocatedMemorySize)
 	DefineMemberWithGetterRefSetter(VkDeviceSize, Alignment)
-	DefineMemberWithGetterRefSetter(void*, Mapped)
+	DefineMemberDefaultWithGetter(void*, Mapped, nullptr)
 	DefineMemberWithGetterRefSetter(VkBufferUsageFlags, BufferUsageFlags)
 	DefineMemberWithGetterRefSetter(VkMemoryPropertyFlags, MemoryPropertyFlags)
 };
