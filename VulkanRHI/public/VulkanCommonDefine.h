@@ -208,6 +208,8 @@ enum class EPixelFormat
 
 enum class ETextureDimension : uint8_t
 {
+	Tex1D,
+	Tex1DArray,
 	Tex2D,
 	Tex2DArray,
 	Tex3D,
@@ -321,16 +323,16 @@ struct ClearValueBinding
 enum class ETextureCreateFlags
 {
 	TCF_NONE = 0,
-	TCF_RenderTarget = 1ull << 0,
-	TCF_ResolveTarget = 1ull << 1,
-	TCF_DepthStencilRT = 1ull << 2,
-	TCF_ShaderResource = 1ull << 3,
-	TCF_SRGB = 1ull << 4,
-	TCF_CPUWritable = 1ull << 5,
-	TCF_InputAttachmentRead = 1ull << 9,
-	TCF_UAV = 1ull << 17,
-	TCF_Presentable = 1ull << 18,
-	TCF_DepthStencilResolveTarget = 1ull << 27,
+	TCF_RenderTarget = 1 << 0,
+	TCF_ResolveTarget = 1 << 1,
+	TCF_DepthStencilRT = 1 << 2,
+	TCF_ShaderResource = 1 << 3,
+	TCF_SRGB = 1 << 4,
+	TCF_CPUWritable = 1 << 5,
+	TCF_InputAttachmentRead = 1 << 9,
+	TCF_UAV = 1 << 17,
+	TCF_Presentable = 1 << 18,
+	TCF_DepthStencilResolveTarget = 1 << 27,
 
 };
 

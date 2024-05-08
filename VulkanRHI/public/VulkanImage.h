@@ -72,7 +72,6 @@ struct TextureDesc
 		return TextureDesc(ETextureDimension::TexCubeArray, inFlags, inFormat, inClearValue, { inSize, inSize }, depth, inArraySize, inNumMips, inNumSamples);
 	};
 
-
 	ETextureCreateFlags mFlags = ETextureCreateFlags::TCF_NONE;
 
 	ClearValueBinding mClearValue;
@@ -95,6 +94,7 @@ struct TextureDesc
 
 	bool bForceLieanerTexture = false;
 
+	VkImageCreateInfo mResultVkImageCreateInfo;
 };
 
 
@@ -104,10 +104,6 @@ class VulkanImage : public enable_shared_from_this<VulkanImage>
 public:
 	~VulkanImage();
 	static shared_ptr<VulkanImage> CreateTexture(TextureDesc inTexDesc, shared_ptr<VulkanDevice> inDevice);
-	
-	
-	
-	
 	
 	
 	static shared_ptr<VulkanImage> CreateAttachment(shared_ptr<VulkanDevice> inDevice, uint32_t inWidth, uint32_t inHeight,
@@ -128,21 +124,21 @@ public:
 
 private:
 	
-	VulkanImage(shared_ptr<VulkanDevice> inDevice, shared_ptr<VulkanImageView> inImageView, VkImage inImage, VkDeviceMemory inVkMemory)
+	VulkanImage(shared_ptr<VulkanDevice> inDevice, TextureDesc inDesc, VkImage inImage, VkDeviceMemory inVkMemory)
 		: mDevice(inDevice)
-		, mImgView(inImageView)
 		, mImg(inImage)
 		, mDeviceMemroy(inVkMemory)
+		, mTextureDesc(inDesc)
 	{
 
 	};
-	void InitImage(uint32_t inWidth, uint32_t inHeight, VkFormat inFormat);
-	DefineMemberWithGetter(VkExtent2D, ImageSize);
+	void InitImage();
 	DefineMemberWithGetter(VkImage, Img);
 	DefineMemberWithGetter(VkDeviceMemory, DeviceMemroy);
 	DefineMemberWithGetter(shared_ptr<VulkanImageView>, ImgView);
 	DefineMemberWithGetter(shared_ptr<VulkanDevice>, Device);
 	DefineMemberWithGetter(VkFormat, Format);
+	DefineMemberWithGetter(TextureDesc, TextureDesc);
 
 };
 
@@ -152,22 +148,17 @@ class VulkanImageView : public enable_shared_from_this<VulkanImageView>
 public:
 	~VulkanImageView();
 
-	static shared_ptr<VulkanImageView> Create(shared_ptr<VulkanDevice> inDevice,
+	static shared_ptr<VulkanImageView> Create(TextureDesc inDesc, shared_ptr<VulkanDevice> inDevice,
 		VkImage inImg,
 		VkImageViewType ViewType,
-		VkImageAspectFlags inAspectFlag,
-		VkFormat inFormat,
-		uint32_t inFirstMip,
-		uint32_t inNumMips,
-		uint32_t inArraySliceIndex,
-		uint32_t inNumArraySlices,
+		uint32_t inFirstMip = 0, uint32_t inNumMips = 1,
+		uint32_t inArraySliceIndex = 0, uint32_t inNumArraySlices = 1,
 		bool bUseIdentitySwizzle = true,
 		VkImageUsageFlags inImageUsageFlags = 0);
 private:
 	
-	VulkanImageView(shared_ptr<VulkanDevice> inDevice,
-		VkImage inImg, VkImageViewType inViewType,
-		VkImageAspectFlags inAspectFlag, VkFormat inFormat,
+	VulkanImageView(TextureDesc inDesc, shared_ptr<VulkanDevice> inDevice,
+		VkImage inImg,
 		uint32_t inFirstMip, uint32_t inNumMips,
 		uint32_t inArraySliceIndex, uint32_t inNumArraySlices,
 		bool bUseIdentitySwizzle, VkImageUsageFlags inImageUsageFlags);
