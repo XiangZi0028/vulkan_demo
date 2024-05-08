@@ -103,14 +103,9 @@ class VulkanImage : public enable_shared_from_this<VulkanImage>
 {
 public:
 	~VulkanImage();
+
 	static shared_ptr<VulkanImage> CreateTexture(TextureDesc inTexDesc, shared_ptr<VulkanDevice> inDevice);
 	
-	
-	static shared_ptr<VulkanImage> CreateAttachment(shared_ptr<VulkanDevice> inDevice, uint32_t inWidth, uint32_t inHeight,
-		VkFormat inFormat,
-		VkImageUsageFlags inUsage,
-		VkImageAspectFlags inImageAspect);
-
 	static shared_ptr<VulkanImage> CreateTexture2D(shared_ptr<VulkanDevice> inDevice, uint32_t inWidth, uint32_t inHeight, 
 		VkImageUsageFlags inUsage,
 		VkFormat inFormat = VK_FORMAT_R8G8B8A8_SRGB,
@@ -118,7 +113,7 @@ public:
 		VkImageAspectFlags inImageAspect = VK_IMAGE_ASPECT_COLOR_BIT,
 		VkSampleCountFlagBits sampleCount = VK_SAMPLE_COUNT_1_BIT);
 
-	static void GenerateImageCreateInfo(TextureDesc inDesc, shared_ptr<VulkanDevice> inDevice);
+	static VkImageCreateInfo GenerateImageCreateInfo(TextureDesc inDesc);
 
 	static uint32_t GetImageLayerCount(VkImageViewType inType, uint32_t inNumArraySlices);
 
@@ -150,7 +145,6 @@ public:
 
 	static shared_ptr<VulkanImageView> Create(TextureDesc inDesc, shared_ptr<VulkanDevice> inDevice,
 		VkImage inImg,
-		VkImageViewType ViewType,
 		uint32_t inFirstMip = 0, uint32_t inNumMips = 1,
 		uint32_t inArraySliceIndex = 0, uint32_t inNumArraySlices = 1,
 		bool bUseIdentitySwizzle = true,

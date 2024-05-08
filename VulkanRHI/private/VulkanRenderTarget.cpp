@@ -4,9 +4,9 @@
 #include <VulkanCommonDefine.h>
 #include <CommonMicro.h>
 
-shared_ptr<VulkanRenderTarget> VulkanRenderTarget::CreateAttachment(EAttachmentType inAttachmentType, shared_ptr<VulkanDevice> inDevice, VkFormat inFormat, uint32_t inWith, uint32_t inHeight)
+shared_ptr<VulkanRenderTarget> VulkanRenderTarget::CreateAttachment(EAttachmentType inAttachmentType, shared_ptr<VulkanDevice> inDevice, EPixelFormat inFormat, uint32_t inWith, uint32_t inHeight)
 {
-	VkFormatProperties formatProperties = inDevice->GetPhysicalDeviceFormatProperties(inFormat);
+	//VkFormatProperties formatProperties = inDevice->GetPhysicalDeviceFormatProperties(inFormat);
 	if (VK_ERROR_FORMAT_NOT_SUPPORTED)
 	{
 
@@ -50,10 +50,11 @@ shared_ptr<VulkanRenderTarget> VulkanRenderTarget::CreateAttachment(EAttachmentT
 		default:
 			break;
 	};
-	shared_ptr<VulkanImage> newImg = VulkanImage::CreateAttachment(inDevice, inWith, inHeight, inFormat, attachmentUsage, imageAspect);
+	/*shared_ptr<VulkanImage> newImg = VulkanImage::CreateAttachment(inDevice, inWith, inHeight, inFormat, attachmentUsage, imageAspect);
 	
 	shared_ptr<VulkanRenderTarget> newRT(new VulkanRenderTarget(newImg, inAttachmentType));
-	return newRT;
+	return newRT;*/
+	return nullptr;
 }
 
 VkAttachmentDescription& VulkanRenderTarget::GetAttachmentDescription(bool& bOutDepthStencil)

@@ -36,10 +36,10 @@ int main()
 	
 	//´´½¨RenderTargets
 	TArray(shared_ptr<VulkanRenderTarget>) RenderTargets;
-	shared_ptr<VulkanRenderTarget> Depth = VulkanRenderTarget::CreateAttachment(EAttachmentType::Depth, VkCore->GetDevice(), VkFormat::VK_FORMAT_D24_UNORM_S8_UINT, 1024, 1024);
-	shared_ptr<VulkanRenderTarget> Color1= VulkanRenderTarget::CreateAttachment(EAttachmentType::SwapChain, VkCore->GetDevice(), VkFormat::VK_FORMAT_B8G8R8A8_UNORM, 1024, 1024);
-	shared_ptr<VulkanRenderTarget> Color2 = VulkanRenderTarget::CreateAttachment(EAttachmentType::Color, VkCore->GetDevice(), VkFormat::VK_FORMAT_B8G8R8A8_UNORM, 1024, 1024);
-	shared_ptr<VulkanRenderTarget> Color3 = VulkanRenderTarget::CreateAttachment(EAttachmentType::Color, VkCore->GetDevice(), VkFormat::VK_FORMAT_R8G8B8A8_UNORM   , 1024, 1024);
+	shared_ptr<VulkanRenderTarget> Depth = VulkanRenderTarget::CreateAttachment(EAttachmentType::Depth, VkCore->GetDevice(), EPixelFormat::PF_DepthStencil, 1024, 1024);
+	shared_ptr<VulkanRenderTarget> Color1= VulkanRenderTarget::CreateAttachment(EAttachmentType::SwapChain, VkCore->GetDevice(), EPixelFormat::PF_B8G8R8A8, 1024, 1024);
+	shared_ptr<VulkanRenderTarget> Color2 = VulkanRenderTarget::CreateAttachment(EAttachmentType::Color, VkCore->GetDevice(), EPixelFormat::PF_B8G8R8A8, 1024, 1024);
+	shared_ptr<VulkanRenderTarget> Color3 = VulkanRenderTarget::CreateAttachment(EAttachmentType::Color, VkCore->GetDevice(), EPixelFormat::PF_B8G8R8A8, 1024, 1024);
 	RenderTargets.push_back(Color1);
 	RenderTargets.push_back(Color2);
 	RenderTargets.push_back(Color3);

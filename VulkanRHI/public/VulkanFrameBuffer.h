@@ -17,7 +17,7 @@ private:
 	VulkanFrameBuffer(shared_ptr<VulkanDevice> inDevice, TArray(shared_ptr<VulkanRenderTarget>) inRenderTargets);
 	void InitFrameBuffer(VkRenderPass inRenderPass);
 	TArray(VkAttachmentDescription) GetAttachmentDescs();
-	DefineMemberWithGetter(VkExtent2D, FrameBufferSize)
+	DefineMemberWithGetter(IntPoint2D, FrameBufferSize)
 	DefineMemberWithGetter(VkFramebuffer, FrameBuffer)
 	DefineMemberWithGetter(shared_ptr<VulkanDevice>, Device)
 	DefineMemberWithGetter(TArray(shared_ptr<VulkanRenderTarget>), RenderTargets)

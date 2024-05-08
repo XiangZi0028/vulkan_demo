@@ -14,7 +14,7 @@ public:
 
 	//static shared_ptr<VulkanRenderTarget> CreateRenderTarget(shared_ptr<VulkanDevice> inDevice, VkFormat inFormat, uint32_t inWith, uint32_t inHeight, VkImageUsageFlags inUsage);
 
-	static shared_ptr<VulkanRenderTarget> VulkanRenderTarget::CreateAttachment(EAttachmentType inAttachmentType, shared_ptr<VulkanDevice> inDevice, VkFormat inFormat, uint32_t inWith, uint32_t inHeight);
+	static shared_ptr<VulkanRenderTarget> VulkanRenderTarget::CreateAttachment(EAttachmentType inAttachmentType, shared_ptr<VulkanDevice> inDevice, EPixelFormat inFormat, uint32_t inWith, uint32_t inHeight);
 
 	VkAttachmentDescription& GetAttachmentDescription(bool& bOutDepthStencil);
 

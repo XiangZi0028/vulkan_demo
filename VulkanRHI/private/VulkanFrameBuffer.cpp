@@ -7,7 +7,7 @@ VulkanFrameBuffer::VulkanFrameBuffer(shared_ptr<VulkanDevice> inDevice, TArray(s
 	: mDevice(inDevice)
 	, mRenderTargets(inRenderTargets)
 {
-	mFrameBufferSize = mRenderTargets[0]->GetImage()->GetImageSize();
+	mFrameBufferSize = mRenderTargets[0]->GetImage()->GetTextureDesc().mExtent;
 };
 
 void VulkanFrameBuffer::InitFrameBuffer(VkRenderPass inRenderPasss)
@@ -20,8 +20,8 @@ void VulkanFrameBuffer::InitFrameBuffer(VkRenderPass inRenderPasss)
 	VkFramebufferCreateInfo frameBufferCreateInfo;
 	ZeroVulkanStruct(frameBufferCreateInfo, VK_STRUCTURE_TYPE_FRAMEBUFFER_CREATE_INFO);
 	frameBufferCreateInfo.attachmentCount = mRenderTargets.size();
-	frameBufferCreateInfo.height = mFrameBufferSize.height;
-	frameBufferCreateInfo.width = mFrameBufferSize.width;
+	frameBufferCreateInfo.height = mFrameBufferSize.x;
+	frameBufferCreateInfo.width = mFrameBufferSize.y;
 	frameBufferCreateInfo.pAttachments = attachments.data();
 	frameBufferCreateInfo.renderPass = inRenderPasss;
 	frameBufferCreateInfo.flags = 0;
@@ -31,30 +31,31 @@ void VulkanFrameBuffer::InitFrameBuffer(VkRenderPass inRenderPasss)
 
 shared_ptr<VulkanFrameBuffer> VulkanFrameBuffer::Create(shared_ptr<VulkanDevice> inDevice, TArray(shared_ptr<VulkanRenderTarget>) inRenderTargets)
 {
-	auto CheckRenderTargtes = [&inRenderTargets]()
+	auto CheckRenderTargtes = [&inRenderTargets](IntPoint2D& outimageSize)
 	{
 		if (inRenderTargets.size() == 0)
 		{
 			return false;
 		}
-		VkExtent2D imageSize = inRenderTargets[0]->GetImage()->GetImageSize();
+		outimageSize = inRenderTargets[0]->GetImage()->GetTextureDesc().mExtent;
 		for (auto rt : inRenderTargets)
 		{
-			VkExtent2D curImageSize = rt->GetImage()->GetImageSize();
-			if (curImageSize.width != imageSize.width || curImageSize.height != imageSize.height)
+			IntPoint2D curImageSize = rt->GetImage()->GetTextureDesc().mExtent;
+			if (curImageSize.x != outimageSize.x || curImageSize.y != outimageSize.y)
 			{
 				return false;
 			}
 		}
 		return true;
 	};
-	if (!CheckRenderTargtes())
+	IntPoint2D outimageSize;
+	if (!CheckRenderTargtes(outimageSize))
 	{
 		return nullptr;
 	}
 	shared_ptr<VulkanFrameBuffer> frameBuffer(new VulkanFrameBuffer(inDevice, inRenderTargets));
-	frameBuffer->mFrameBufferWidth = inRenderTargets[0]->GetImage()->GetImageSize().width;
-	frameBuffer->mFrameBufferHeight = inRenderTargets[0]->GetImage()->GetImageSize().height;
+	frameBuffer->mFrameBufferWidth = outimageSize.x;
+	frameBuffer->mFrameBufferHeight = outimageSize.y;
 
 	return frameBuffer;
 };

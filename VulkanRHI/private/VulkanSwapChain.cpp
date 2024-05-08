@@ -125,8 +125,13 @@ void VulkanSwapChain::InitVkSwapChain()
 	vkGetSwapchainImagesKHR(mDevice->GetDevice(), mVkSwapChain, &swapChainImgCount, imgs.data());
 	for (auto& image : imgs)
 	{
+		TextureDesc swapChainImgDesc = TextureDesc::Create2D({ int(swapchainCretaeInfo.imageExtent.width), int(swapchainCretaeInfo.imageExtent.height) },
+			EPixelFormat::PF_Unknown,
+			{ 0, 0, 0, 0,EClearBinding::EColorBound },
+			ETextureCreateFlags::TCF_Presentable,
+			1, 1);
 		mImages.push_back(image);
-		shared_ptr<VulkanImageView> imageView = VulkanImageView::Create(mDevice, image, VK_IMAGE_VIEW_TYPE_2D, VK_IMAGE_ASPECT_COLOR_BIT, mSurfaceFormat.format, 0, 1, 0, 1, false);
+		shared_ptr<VulkanImageView> imageView = VulkanImageView::Create(swapChainImgDesc, mDevice, image);
 		mImageViews.push_back(imageView);
 		//创建信号量
 		if (mUseSemaphore)
