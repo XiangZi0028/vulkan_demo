@@ -131,7 +131,7 @@ void VulkanSwapChain::InitVkSwapChain()
 			ETextureCreateFlags::TCF_Presentable,
 			1, 1);
 		mImages.push_back(image);
-		shared_ptr<VulkanImageView> imageView = VulkanImageView::Create(swapChainImgDesc, mDevice, image);
+		shared_ptr<VulkanImageView> imageView = VulkanImageView::Create(swapChainImgDesc, mDevice, image, swapchainCretaeInfo.imageUsage);
 		mImageViews.push_back(imageView);
 		//创建信号量
 		if (mUseSemaphore)

@@ -36,9 +36,207 @@ VulkanDevice::EGpuType VulkanDevice::QueryGPUType()
 	return mGpuType;
 }
 
+void VulkanDevice::SetupPixelFormatMap()
+{
+	//查询并统计当前设备支持的Format的支持情况
+	for (int32_t index = 0; index < VkFormat::VK_FORMAT_MAX_ENUM; ++index)
+	{
+		const VkFormat format = (VkFormat)index;
+		VkFormatProperties curFormatProperties = {};
+		vkGetPhysicalDeviceFormatProperties(mGpu, format, &curFormatProperties);
+		if ((curFormatProperties.bufferFeatures != 0) || 
+			(curFormatProperties.linearTilingFeatures != 0) || 
+			(curFormatProperties.optimalTilingFeatures != 0))
+		{
+			VkFormatProperties& properties = mFormatProperties[format];
+			properties = curFormatProperties;
+		}
+	}
+	//初始化
+	for (int32_t index = 0; index < EPixelFormat::PF_NUMMAX; ++index)
+	{
+		PixelFormatInfo& pixelFormatInfo = GPixelFormatsMap[EPixelFormat(index)];
+		pixelFormatInfo.platformFormat = VK_FORMAT_UNDEFINED;
+		pixelFormatInfo.supported = false;
+
+		VkComponentMapping& componentMapping = GPixelFormatComponentMap[EPixelFormat(index)];
+		componentMapping.r = VK_COMPONENT_SWIZZLE_IDENTITY;
+		componentMapping.g = VK_COMPONENT_SWIZZLE_IDENTITY;
+		componentMapping.b = VK_COMPONENT_SWIZZLE_IDENTITY;
+		componentMapping.a = VK_COMPONENT_SWIZZLE_IDENTITY;
+	}
+
+	//lambda: vkformat supported
+	auto IsVkFormatSupported = [](VkFormat inFormat)
+	{
+		if (mFormatProperties.find(inFormat) != mFormatProperties.end())
+		{
+			return true;
+		}
+		return false;
+	};
+	
+	auto MapSupportedFormat = [&IsVkFormatSupported](EPixelFormat inPixelFormat, VkFormat inVkFormat)
+	{
+		PixelFormatInfo& pixelFormatInfo = VulkanDevice::GPixelFormatsMap[inPixelFormat];
+		pixelFormatInfo.supported = IsVkFormatSupported(inVkFormat);
+		pixelFormatInfo.platformFormat = inVkFormat;
+	};
+	auto FormatComponentMapping = [](EPixelFormat inPixelFormat, VkComponentSwizzle r, VkComponentSwizzle g, VkComponentSwizzle b, VkComponentSwizzle a)
+	{
+		VkComponentMapping& componentMapping = GPixelFormatComponentMap[inPixelFormat];
+		componentMapping.r = r;
+		componentMapping.g = g;
+		componentMapping.b = b;
+		componentMapping.a = a;
+	};
+	MapSupportedFormat(PF_B8G8R8A8, VK_FORMAT_B8G8R8A8_UNORM);
+	FormatComponentMapping(PF_B8G8R8A8, VK_COMPONENT_SWIZZLE_R, VK_COMPONENT_SWIZZLE_G, VK_COMPONENT_SWIZZLE_B, VK_COMPONENT_SWIZZLE_A);
+
+	MapSupportedFormat(PF_G8, VK_FORMAT_R8_UNORM);
+	FormatComponentMapping(PF_G8, VK_COMPONENT_SWIZZLE_R, VK_COMPONENT_SWIZZLE_ZERO, VK_COMPONENT_SWIZZLE_ZERO, VK_COMPONENT_SWIZZLE_ZERO);
+
+	MapSupportedFormat(PF_G16, VK_FORMAT_R16_UNORM);
+	FormatComponentMapping(PF_G16, VK_COMPONENT_SWIZZLE_R, VK_COMPONENT_SWIZZLE_ZERO, VK_COMPONENT_SWIZZLE_ZERO, VK_COMPONENT_SWIZZLE_ZERO);
+
+	MapSupportedFormat(PF_FloatRGB, VK_FORMAT_B10G11R11_UFLOAT_PACK32);
+	FormatComponentMapping(PF_FloatRGB, VK_COMPONENT_SWIZZLE_R, VK_COMPONENT_SWIZZLE_G, VK_COMPONENT_SWIZZLE_B, VK_COMPONENT_SWIZZLE_ZERO);
+
+	MapSupportedFormat(PF_FloatRGBA, VK_FORMAT_R16G16B16A16_SFLOAT);
+	FormatComponentMapping(PF_FloatRGBA, VK_COMPONENT_SWIZZLE_R, VK_COMPONENT_SWIZZLE_G, VK_COMPONENT_SWIZZLE_B, VK_COMPONENT_SWIZZLE_A);
+
+	MapSupportedFormat(PF_DepthStencil, VK_FORMAT_D32_SFLOAT_S8_UINT);
+	if (!GPixelFormatsMap[PF_DepthStencil].supported)
+	{
+		MapSupportedFormat(PF_DepthStencil, VK_FORMAT_D24_UNORM_S8_UINT);
+		if (!GPixelFormatsMap[PF_DepthStencil].supported)
+		{
+			MapSupportedFormat(PF_DepthStencil, VK_FORMAT_D16_UNORM_S8_UINT);
+			if (!GPixelFormatsMap[PF_DepthStencil].supported) {
+				//No stencil texture format supported;
+			}
+		}
+	}
+	FormatComponentMapping(PF_DepthStencil, VK_COMPONENT_SWIZZLE_R, VK_COMPONENT_SWIZZLE_IDENTITY, VK_COMPONENT_SWIZZLE_IDENTITY, VK_COMPONENT_SWIZZLE_IDENTITY);
+
+	MapSupportedFormat(PF_ShadowDepth, VK_FORMAT_D16_UNORM);
+	FormatComponentMapping(PF_ShadowDepth, VK_COMPONENT_SWIZZLE_R, VK_COMPONENT_SWIZZLE_IDENTITY, VK_COMPONENT_SWIZZLE_IDENTITY, VK_COMPONENT_SWIZZLE_IDENTITY);
+
+	MapSupportedFormat(PF_G32R32F, VK_FORMAT_R32G32_SFLOAT);
+	FormatComponentMapping(PF_G32R32F, VK_COMPONENT_SWIZZLE_R, VK_COMPONENT_SWIZZLE_G, VK_COMPONENT_SWIZZLE_ZERO, VK_COMPONENT_SWIZZLE_ZERO);
+
+	MapSupportedFormat(PF_A32B32G32R32F, VK_FORMAT_R32G32B32A32_SFLOAT);
+	FormatComponentMapping(PF_A32B32G32R32F, VK_COMPONENT_SWIZZLE_R, VK_COMPONENT_SWIZZLE_G, VK_COMPONENT_SWIZZLE_B, VK_COMPONENT_SWIZZLE_A);
+
+	MapSupportedFormat(PF_G16R16, VK_FORMAT_R16G16_UNORM);
+	FormatComponentMapping(PF_G16R16, VK_COMPONENT_SWIZZLE_R, VK_COMPONENT_SWIZZLE_G, VK_COMPONENT_SWIZZLE_ZERO, VK_COMPONENT_SWIZZLE_ZERO);
+
+	MapSupportedFormat(PF_G16R16F, VK_FORMAT_R16G16_SFLOAT);
+	FormatComponentMapping(PF_G16R16F, VK_COMPONENT_SWIZZLE_R, VK_COMPONENT_SWIZZLE_G, VK_COMPONENT_SWIZZLE_ZERO, VK_COMPONENT_SWIZZLE_ZERO);
+
+	MapSupportedFormat(PF_G16R16F_FILTER, VK_FORMAT_R16G16_SFLOAT);
+	FormatComponentMapping(PF_G16R16F_FILTER, VK_COMPONENT_SWIZZLE_R, VK_COMPONENT_SWIZZLE_G, VK_COMPONENT_SWIZZLE_ZERO, VK_COMPONENT_SWIZZLE_ZERO);
+
+	MapSupportedFormat(PF_R16_UINT, VK_FORMAT_R16_UINT);
+	FormatComponentMapping(PF_R16_UINT, VK_COMPONENT_SWIZZLE_R, VK_COMPONENT_SWIZZLE_ZERO, VK_COMPONENT_SWIZZLE_ZERO, VK_COMPONENT_SWIZZLE_ZERO);
+
+	MapSupportedFormat(PF_R16_SINT, VK_FORMAT_R16_SINT);
+	FormatComponentMapping(PF_R16_SINT, VK_COMPONENT_SWIZZLE_R, VK_COMPONENT_SWIZZLE_ZERO, VK_COMPONENT_SWIZZLE_ZERO, VK_COMPONENT_SWIZZLE_ZERO);
+
+	MapSupportedFormat(PF_R32_UINT, VK_FORMAT_R32_UINT);
+	FormatComponentMapping(PF_R32_UINT, VK_COMPONENT_SWIZZLE_R, VK_COMPONENT_SWIZZLE_ZERO, VK_COMPONENT_SWIZZLE_ZERO, VK_COMPONENT_SWIZZLE_ZERO);
+
+	MapSupportedFormat(PF_R32_SINT, VK_FORMAT_R32_SINT);
+	FormatComponentMapping(PF_R32_SINT, VK_COMPONENT_SWIZZLE_R, VK_COMPONENT_SWIZZLE_ZERO, VK_COMPONENT_SWIZZLE_ZERO, VK_COMPONENT_SWIZZLE_ZERO);
+
+	MapSupportedFormat(PF_R8_UINT, VK_FORMAT_R8_UINT);
+	FormatComponentMapping(PF_R8_UINT, VK_COMPONENT_SWIZZLE_R, VK_COMPONENT_SWIZZLE_ZERO, VK_COMPONENT_SWIZZLE_ZERO, VK_COMPONENT_SWIZZLE_ZERO);
+
+	MapSupportedFormat(PF_D24, VK_FORMAT_D24_UNORM_S8_UINT);
+	if (!GPixelFormatsMap[PF_D24].supported)
+	{
+		MapSupportedFormat(PF_D24, VK_FORMAT_D16_UNORM_S8_UINT);
+		if (!GPixelFormatsMap[PF_D24].supported)
+		{
+			MapSupportedFormat(PF_D24, VK_FORMAT_D32_SFLOAT);
+			if (!GPixelFormatsMap[PF_D24].supported)
+			{
+				MapSupportedFormat(PF_D24, VK_FORMAT_D32_SFLOAT_S8_UINT);
+				if (!GPixelFormatsMap[PF_D24].supported)
+				{
+					MapSupportedFormat(PF_D24, VK_FORMAT_D16_UNORM);
+					if (!GPixelFormatsMap[PF_D24].supported) {
+						//No Depth texture format supported!
+					}
+				}
+			}
+		}
+	}
+	FormatComponentMapping(PF_D24, VK_COMPONENT_SWIZZLE_R, VK_COMPONENT_SWIZZLE_ZERO, VK_COMPONENT_SWIZZLE_ZERO, VK_COMPONENT_SWIZZLE_ZERO);
+
+	MapSupportedFormat(PF_R16F, VK_FORMAT_R16_SFLOAT);
+	FormatComponentMapping(PF_R16F, VK_COMPONENT_SWIZZLE_R, VK_COMPONENT_SWIZZLE_ZERO, VK_COMPONENT_SWIZZLE_ZERO, VK_COMPONENT_SWIZZLE_ZERO);
+
+	MapSupportedFormat(PF_R16F_FILTER, VK_FORMAT_R16_SFLOAT);
+	FormatComponentMapping(PF_R16F_FILTER, VK_COMPONENT_SWIZZLE_R, VK_COMPONENT_SWIZZLE_ZERO, VK_COMPONENT_SWIZZLE_ZERO, VK_COMPONENT_SWIZZLE_ZERO);
+
+	MapSupportedFormat(PF_FloatR11G11B10, VK_FORMAT_B10G11R11_UFLOAT_PACK32);
+	FormatComponentMapping(PF_FloatR11G11B10, VK_COMPONENT_SWIZZLE_R, VK_COMPONENT_SWIZZLE_G, VK_COMPONENT_SWIZZLE_B, VK_COMPONENT_SWIZZLE_ZERO);
+
+	MapSupportedFormat(PF_A2B10G10R10, VK_FORMAT_A2B10G10R10_UNORM_PACK32);
+	FormatComponentMapping(PF_A2B10G10R10, VK_COMPONENT_SWIZZLE_R, VK_COMPONENT_SWIZZLE_G, VK_COMPONENT_SWIZZLE_B, VK_COMPONENT_SWIZZLE_A);
+
+	MapSupportedFormat(PF_A16B16G16R16, VK_FORMAT_R16G16B16A16_UNORM);
+	FormatComponentMapping(PF_A16B16G16R16, VK_COMPONENT_SWIZZLE_R, VK_COMPONENT_SWIZZLE_G, VK_COMPONENT_SWIZZLE_B, VK_COMPONENT_SWIZZLE_A);
+
+	MapSupportedFormat(PF_A8, VK_FORMAT_R8_UNORM);
+	FormatComponentMapping(PF_A8, VK_COMPONENT_SWIZZLE_ZERO, VK_COMPONENT_SWIZZLE_ZERO, VK_COMPONENT_SWIZZLE_ZERO, VK_COMPONENT_SWIZZLE_R);
+
+	MapSupportedFormat(PF_R5G6B5_UNORM, VK_FORMAT_R5G6B5_UNORM_PACK16);
+	FormatComponentMapping(PF_R5G6B5_UNORM, VK_COMPONENT_SWIZZLE_R, VK_COMPONENT_SWIZZLE_G, VK_COMPONENT_SWIZZLE_B, VK_COMPONENT_SWIZZLE_A);
+
+	MapSupportedFormat(PF_R8G8B8A8, VK_FORMAT_R8G8B8A8_UNORM);
+	FormatComponentMapping(PF_R8G8B8A8, VK_COMPONENT_SWIZZLE_R, VK_COMPONENT_SWIZZLE_G, VK_COMPONENT_SWIZZLE_B, VK_COMPONENT_SWIZZLE_A);
+
+	MapSupportedFormat(PF_R8G8B8A8_UINT, VK_FORMAT_R8G8B8A8_UINT);
+	FormatComponentMapping(PF_R8G8B8A8_UINT, VK_COMPONENT_SWIZZLE_R, VK_COMPONENT_SWIZZLE_G, VK_COMPONENT_SWIZZLE_B, VK_COMPONENT_SWIZZLE_A);
+
+	MapSupportedFormat(PF_R8G8B8A8_SNORM, VK_FORMAT_R8G8B8A8_SNORM);
+	FormatComponentMapping(PF_R8G8B8A8_SNORM, VK_COMPONENT_SWIZZLE_R, VK_COMPONENT_SWIZZLE_G, VK_COMPONENT_SWIZZLE_B, VK_COMPONENT_SWIZZLE_A);
+
+	MapSupportedFormat(PF_R16G16_UINT, VK_FORMAT_R16G16_UINT);
+	FormatComponentMapping(PF_R16G16_UINT, VK_COMPONENT_SWIZZLE_R, VK_COMPONENT_SWIZZLE_G, VK_COMPONENT_SWIZZLE_ZERO, VK_COMPONENT_SWIZZLE_ZERO);
+
+	MapSupportedFormat(PF_R16G16B16A16_UINT, VK_FORMAT_R16G16B16A16_UINT);
+	FormatComponentMapping(PF_R16G16B16A16_UINT, VK_COMPONENT_SWIZZLE_R, VK_COMPONENT_SWIZZLE_G, VK_COMPONENT_SWIZZLE_B, VK_COMPONENT_SWIZZLE_A);
+
+	MapSupportedFormat(PF_R16G16B16A16_SINT, VK_FORMAT_R16G16B16A16_SINT);
+	FormatComponentMapping(PF_R16G16B16A16_SINT, VK_COMPONENT_SWIZZLE_R, VK_COMPONENT_SWIZZLE_G, VK_COMPONENT_SWIZZLE_B, VK_COMPONENT_SWIZZLE_A);
+
+	MapSupportedFormat(PF_R32G32B32A32_UINT, VK_FORMAT_R32G32B32A32_UINT);
+	FormatComponentMapping(PF_R32G32B32A32_UINT, VK_COMPONENT_SWIZZLE_R, VK_COMPONENT_SWIZZLE_G, VK_COMPONENT_SWIZZLE_B, VK_COMPONENT_SWIZZLE_A);
+
+	MapSupportedFormat(PF_R16G16B16A16_SNORM, VK_FORMAT_R16G16B16A16_SNORM);
+	FormatComponentMapping(PF_R16G16B16A16_SNORM, VK_COMPONENT_SWIZZLE_R, VK_COMPONENT_SWIZZLE_G, VK_COMPONENT_SWIZZLE_B, VK_COMPONENT_SWIZZLE_A);
+
+	MapSupportedFormat(PF_R16G16B16A16_UNORM, VK_FORMAT_R16G16B16A16_UNORM);
+	FormatComponentMapping(PF_R16G16B16A16_UNORM, VK_COMPONENT_SWIZZLE_R, VK_COMPONENT_SWIZZLE_G, VK_COMPONENT_SWIZZLE_B, VK_COMPONENT_SWIZZLE_A);
+
+	MapSupportedFormat(PF_R8G8, VK_FORMAT_R8G8_UNORM);
+	FormatComponentMapping(PF_R8G8, VK_COMPONENT_SWIZZLE_R, VK_COMPONENT_SWIZZLE_G, VK_COMPONENT_SWIZZLE_ZERO, VK_COMPONENT_SWIZZLE_ZERO);
+
+	MapSupportedFormat(PF_V8U8, VK_FORMAT_R8G8_UNORM);
+	FormatComponentMapping(PF_V8U8, VK_COMPONENT_SWIZZLE_R, VK_COMPONENT_SWIZZLE_G, VK_COMPONENT_SWIZZLE_ZERO, VK_COMPONENT_SWIZZLE_ZERO);
+
+	MapSupportedFormat(PF_R32_FLOAT, VK_FORMAT_R32_SFLOAT);
+	FormatComponentMapping(PF_R32_FLOAT, VK_COMPONENT_SWIZZLE_R, VK_COMPONENT_SWIZZLE_ZERO, VK_COMPONENT_SWIZZLE_ZERO, VK_COMPONENT_SWIZZLE_ZERO);
+}
+
 void VulkanDevice::InitGPU()
 {
 	CreateDevice();
+	//建立映射关系
+	SetupPixelFormatMap();
 }
 
 void VulkanDevice::CreateDevice()
@@ -182,13 +380,13 @@ const VkFormatProperties& VulkanDevice::GetPhysicalDeviceFormatProperties(VkForm
 	auto it = mFormatProperties.find(inFormat);
 	if (it != mFormatProperties.end())
 	{
-		return *(it->second);
+		return (it->second);
 	}
 	else
 	{
-		VkFormatProperties* newVkFormatProperties = new VkFormatProperties();
-		vkGetPhysicalDeviceFormatProperties(mGpu, inFormat, newVkFormatProperties);
+		VkFormatProperties newVkFormatProperties = {};
+		vkGetPhysicalDeviceFormatProperties(mGpu, inFormat, &newVkFormatProperties);
 		mFormatProperties[inFormat] = newVkFormatProperties;
-		return *(newVkFormatProperties);
+		return newVkFormatProperties;
 	}
 }

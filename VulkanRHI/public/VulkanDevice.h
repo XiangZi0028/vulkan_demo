@@ -45,8 +45,13 @@ public:
 
 	const VkFormatProperties& GetPhysicalDeviceFormatProperties(VkFormat inFormat);
 
+	static std::map<EPixelFormat, PixelFormatInfo>  GPixelFormatsMap;
+	static std::map<EPixelFormat, VkComponentMapping>  GPixelFormatComponentMap;
+	static std::map<VkFormat, VkFormatProperties> mFormatProperties;
+
 private:
 	void CreateDevice();
+	void SetupPixelFormatMap();
 	VkSurfaceKHR mSurface;
 	DefineMemberWithGetter(VkPhysicalDevice, Gpu)
 	DefineMemberWithGetter(EGpuType, GpuType)
@@ -59,5 +64,4 @@ private:
 	TArray(VkQueueFamilyProperties) mQueueFamliyProperties;
 	DefineMemberWithGetter(QueueFamilyIndices, QueueFamilyIndices)
 	DefineMemberWithGetter(VulkanQueues, Queues)
-	std::unordered_map<VkFormat, VkFormatProperties*> mFormatProperties;
 };

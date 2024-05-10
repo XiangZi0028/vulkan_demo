@@ -15,7 +15,9 @@ void VulkanFrameBuffer::InitFrameBuffer(VkRenderPass inRenderPasss)
 	TArray(VkImageView) attachments;
 	for (auto rt : mRenderTargets)
 	{
-		attachments.push_back(rt->GetImage()->GetImgView()->GetImgView());
+		ImageViewLayout ImageViewLayout;
+		shared_ptr<VulkanImageView> imgView = rt->GetImage()->FindOrCreateImageView(ImageViewLayout);
+		imgView->GetImgView();
 	}
 	VkFramebufferCreateInfo frameBufferCreateInfo;
 	ZeroVulkanStruct(frameBufferCreateInfo, VK_STRUCTURE_TYPE_FRAMEBUFFER_CREATE_INFO);
