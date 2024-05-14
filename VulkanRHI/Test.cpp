@@ -9,6 +9,7 @@
 #include <VulkanRHI/public/VulkanSwapChain.h>
 #include <VulkanRHI/public/VulkanImage.h>
 #include <VulkanRHI/public/VulkanDevice.h>
+#include <VulkanRHI/public/VulkanBarrierLayout.h>
 #include <VulkanVertexBuffer.h>
 #include <CommonMicro.h>
 #include <vulkan/vulkan.h>
@@ -37,7 +38,7 @@ int main()
 	//创建RenderTargets
 	TArray(shared_ptr<VulkanRenderTarget>) RenderTargets;
 	shared_ptr<VulkanRenderTarget> Depth = VulkanRenderTarget::CreateAttachment(EAttachmentType::Depth, VkCore->GetDevice(), EPixelFormat::PF_DepthStencil, 1024, 1024);
-	shared_ptr<VulkanRenderTarget> Color1= VulkanRenderTarget::CreateAttachment(EAttachmentType::SwapChain, VkCore->GetDevice(), EPixelFormat::PF_B8G8R8A8, 1024, 1024);
+	shared_ptr<VulkanRenderTarget> Color1= VulkanRenderTarget::CreateAttachment(EAttachmentType::Color, VkCore->GetDevice(), EPixelFormat::PF_B8G8R8A8, 1024, 1024);
 	shared_ptr<VulkanRenderTarget> Color2 = VulkanRenderTarget::CreateAttachment(EAttachmentType::Color, VkCore->GetDevice(), EPixelFormat::PF_B8G8R8A8, 1024, 1024);
 	shared_ptr<VulkanRenderTarget> Color3 = VulkanRenderTarget::CreateAttachment(EAttachmentType::Color, VkCore->GetDevice(), EPixelFormat::PF_B8G8R8A8, 1024, 1024);
 	RenderTargets.push_back(Color1);
@@ -82,64 +83,45 @@ int main()
 	ZeroVulkanStruct(CreateInfo, VK_STRUCTURE_TYPE_SEMAPHORE_CREATE_INFO);
 	VkSemaphore CmdSemaphore;
 	vkCreateSemaphore(VkCore->GetDevice()->GetDevice(), &CreateInfo, nullptr, &CmdSemaphore);
-	CommandBuffer->SubmitCommandBuffer(&CmdSemaphore);
-	
+	CommandBuffer->SubmitCommandBuffer(1, &CmdSemaphore);
 	//正常流程：创建RT的时候 有一张Image应该是作为Present使用的(这个图应该每帧去swap chain返回的images中去取)
 	//这里先直接加一个Draw，将被标记为swapchain的图绘制到frame buffer上。
 	while (true)
 	{
-
-		CommandBuffer->BeginCommandBuffer();
-		VkImage dstImage = VkCore->GetSwapChain()->GetImages()[VkCore->GetSwapChain()->GetCurBackBufferIndex()];
-		VkImageMemoryBarrier imageBarrier;
-		ZeroVulkanStruct(imageBarrier, VK_STRUCTURE_TYPE_IMAGE_MEMORY_BARRIER);
-		imageBarrier.image = dstImage;
-		imageBarrier.subresourceRange = { VK_IMAGE_ASPECT_COLOR_BIT,  0, 1, 0, 1};
-		imageBarrier.srcQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED;
-		imageBarrier.dstQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED;
-		imageBarrier.oldLayout = VK_IMAGE_LAYOUT_UNDEFINED;
-		imageBarrier.newLayout = VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL;
-
-		VkPipelineStageFlags sourceStages = (VkPipelineStageFlags)0;
-		sourceStages = VK_PIPELINE_STAGE_BOTTOM_OF_PIPE_BIT;
-		VkPipelineStageFlags destStages = (VkPipelineStageFlags)0;
-		destStages = VK_PIPELINE_STAGE_TRANSFER_BIT;
-		vkCmdPipelineBarrier(CommandBuffer->GetCommandBufferRef(), sourceStages, destStages, 0, 0, nullptr, 0, nullptr, 1, &imageBarrier);
-		CommandBuffer->EndCommandBuffer();
-		CommandBuffer->SubmitCommandBuffer();
-
-		CommandBuffer->BeginCommandBuffer();
 		VkSemaphore Semaphore = VK_NULL_HANDLE;
-		VkCore->GetSwapChain()->AcquireNextImage(&Semaphore);
+		VkCore->GetSwapChain()->AcquireNextImage(Semaphore);
+		int curBackBufferIndex = VkCore->GetSwapChain()->GetCurBackBufferIndex();
+		VkImage curScreenImage = VkCore->GetSwapChain()->GetImages()[curBackBufferIndex];
+		shared_ptr<VulkanImageView> curBackBufferImageView =  VkCore->GetSwapChain()->GetImageViews()[curBackBufferIndex];
+		SubresourceRange subresourceRange = curBackBufferImageView->GetSubresourceRange();
+		MemoryBarrierInfo screenImageMemoryBarrier;
+		screenImageMemoryBarrier.mBarrierType = EPipelineBarrierType::PBT_ImageMemory;
+		screenImageMemoryBarrier.mImage = curScreenImage;
+		screenImageMemoryBarrier.mOldLayout = ETextureBarrierLayout::TBL_Undefined;
+		screenImageMemoryBarrier.mNewLayout = ETextureBarrierLayout::TBL_TransferDst;
+		screenImageMemoryBarrier.SrcPipelineStatge = EPipelineStageFlags::PSF_PipelineBottom;
+		screenImageMemoryBarrier.DstPipelineStatge = EPipelineStageFlags::PSF_Transfer;
+		screenImageMemoryBarrier.mBarrierCount = 1;
+		screenImageMemoryBarrier.mSubResourceImage = subresourceRange;
+		VulkanBarrierLayoutManager::BarrierLayoutExcute(CommandBuffer, screenImageMemoryBarrier);
+
+		CommandBuffer->BeginCommandBuffer();
 		VkImageCopy region;
 		region.dstOffset = { 0,0,0 };
 		region.dstSubresource = { VK_IMAGE_ASPECT_COLOR_BIT, 0, 0, 1 };
 		region.extent = { 1024, 1024, 1 };
 		region.srcOffset = { 0,0,0 };
 		region.srcSubresource = { VK_IMAGE_ASPECT_COLOR_BIT, 0, 0, 1 };
-		vkCmdCopyImage(CommandBuffer->GetCommandBufferRef(), Color1->GetImage()->GetImg(), VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL, dstImage, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL, 1, &region);
+		vkCmdCopyImage(CommandBuffer->GetCommandBufferRef(), Color1->GetImage()->GetImg(), VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL, curScreenImage, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL, 1, &region);
 		CommandBuffer->EndCommandBuffer();
 		CommandBuffer->SubmitCommandBuffer();
-		
-		CommandBuffer->BeginCommandBuffer();
-		VkImageMemoryBarrier imageBarrier1;
-		ZeroVulkanStruct(imageBarrier1, VK_STRUCTURE_TYPE_IMAGE_MEMORY_BARRIER);
-		imageBarrier1.image = dstImage;
-		imageBarrier1.subresourceRange = { VK_IMAGE_ASPECT_COLOR_BIT,  0, 1, 0, 1 };
-		imageBarrier1.srcQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED;
-		imageBarrier1.dstQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED;
-		imageBarrier1.oldLayout = VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL;
-		imageBarrier1.newLayout = VK_IMAGE_LAYOUT_PRESENT_SRC_KHR;
-		sourceStages = VK_PIPELINE_STAGE_TRANSFER_BIT;
-		destStages = VK_PIPELINE_STAGE_BOTTOM_OF_PIPE_BIT;
-		vkCmdPipelineBarrier(CommandBuffer->GetCommandBufferRef(), sourceStages, destStages, 0, 0, nullptr, 0, nullptr, 1, &imageBarrier1);
-		CommandBuffer->EndCommandBuffer();
-		CommandBuffer->SubmitCommandBuffer();
-		
-		
-		VkCore->GetSwapChain()->Present(Semaphore);
 
-		Sleep(1000);
+		screenImageMemoryBarrier.mOldLayout= ETextureBarrierLayout::TBL_TransferDst;
+		screenImageMemoryBarrier.mNewLayout = ETextureBarrierLayout::TBL_PresentSrc;
+		screenImageMemoryBarrier.SrcPipelineStatge = EPipelineStageFlags::PSF_Transfer;
+		screenImageMemoryBarrier.DstPipelineStatge = EPipelineStageFlags::PSF_PipelineBottom;
+		VulkanBarrierLayoutManager::BarrierLayoutExcute(CommandBuffer, screenImageMemoryBarrier);
+		VkCore->GetSwapChain()->Present(Semaphore);
 
 	}
 	return 0;

@@ -2,9 +2,13 @@
 #include <vulkan/vulkan.h>
 #include<iostream>
 #include <vector>
+#include <queue>
 using namespace std;
 #define TArray(Type)\
 	std::vector<Type>
+
+#define TQueue(Type)\
+	std::queue<Type>
 
 #define DefineMemberDefaultWithGetter(TYPE, MEMBER_NAME, VALUE)\
 public:\
@@ -72,7 +76,7 @@ constexpr bool EnumHasAllFlags(Enum Flags, Enum Contains)
 }
 
 template<typename Enum>
-constexpr bool EnumHasAnyFlags(Enum Flags, Enum Contains)
+constexpr bool EnumHasAnyFlags(Enum Flags, int Contains)
 {
 	return (((__underlying_type(Enum))Flags) & (__underlying_type(Enum))Contains) != 0;
 }

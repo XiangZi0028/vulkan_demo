@@ -30,7 +30,7 @@ private:
 
 	VkAttachmentDescription mDesc;
 	EAttachmentType mAttachemntType;
-	DefineMemberWithGetter(shared_ptr<VulkanImage>, Image);
+	DefineMemberDefaultWithGetter(shared_ptr<VulkanImage>, Image, nullptr);
 };
 
 

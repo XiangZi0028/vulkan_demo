@@ -12,7 +12,7 @@ public:
 
 	~VulkanSwapChain();
 
-	void AcquireNextImage(VkSemaphore* outSemaphore);
+	void AcquireNextImage(VkSemaphore& outSemaphore);
 
 	void Present(VkSemaphore inWaitSemaphore);
 

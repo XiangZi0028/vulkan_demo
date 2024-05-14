@@ -3,7 +3,6 @@
 #include <vulkan/vulkan.h>
 using namespace std;
 
-
 enum EVulkanShaderType
 {
 	VertexShader,
@@ -112,7 +111,6 @@ enum EColorWriteMask
 	EColorWriteMask_NumBits = 4,
 };
 
-
 enum EBlendFactor
 {
 	BF_Zero,
@@ -181,17 +179,14 @@ enum EMultiSampleCount
 	SampleCountMaxNum
 };
 
-
 enum EAttachmentType
 {
 	Color,
 	Depth,
 	Stencil,
 	DepthStencil,
-	SwapChain,
 	AttachmentTypeMaxNum
 };
-
 
 enum EPixelFormat
 {
@@ -262,6 +257,7 @@ enum EPixelFormat
 	PF_PLATFORM_HDR_0 = 64,
 	PF_PLATFORM_HDR_1 = 65,
 	PF_PLATFORM_HDR_2 = 66,
+	PF_R8G8B8A8_SRGB = 67,
 	PF_NUMMAX = PF_PLATFORM_HDR_2 + 1,
 };
 
@@ -285,7 +281,7 @@ struct PixelFormatInfo
 	//int blockBytes;
 	//int numComponents;
 	uint32_t platformFormat;
-	bool        supported;
+	bool supported;
 	//EPixelFormat pixelFormat;
 };
 
@@ -392,7 +388,7 @@ struct ClearValueBinding
 };
 
 
-enum class ETextureCreateFlags
+enum ETextureCreateFlags
 {
 	TCF_NONE = 0,
 	TCF_RenderTarget = 1 << 0,
@@ -417,6 +413,30 @@ static const VkImageTiling GVulkanViewTypeTilingMode[7] =
 	VK_IMAGE_TILING_LINEAR,		// VK_IMAGE_VIEW_TYPE_1D_ARRAY
 	VK_IMAGE_TILING_OPTIMAL,	// VK_IMAGE_VIEW_TYPE_2D_ARRAY
 	VK_IMAGE_TILING_OPTIMAL,	// VK_IMAGE_VIEW_TYPE_CUBE_ARRAY
+};
+
+enum ETextureBarrierLayout
+{
+	TBL_Undefined,
+	TBL_TransferSrc,
+	TBL_TransferDst,
+	TBL_ColorAttachment,
+	TBL_DepthStencilAttachment,
+	TBL_PresentSrc
+};
+
+
+struct SubresourceRange
+{
+	SubresourceRange()
+	{
+
+	};
+	uint32_t mImageAspect;//Vk_IMAGE_ASPECT
+	uint32_t mBaseMipLevel;
+	uint32_t mLevelCount;
+	uint32_t mBaseArrayLayer;
+	uint32_t mLayerCount;
 };
 
 

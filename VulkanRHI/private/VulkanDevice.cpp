@@ -1,5 +1,8 @@
 #include"VulkanRHI/public/VulkanDevice.h"
 #include"VulkanRHI/public/VulkanCommandBuffer.h"
+std::map<EPixelFormat, PixelFormatInfo>  VulkanDevice::GPixelFormatsMap;
+std::map<EPixelFormat, VkComponentMapping>  VulkanDevice::GPixelFormatComponentMap;
+VkFormatProperties VulkanDevice::mFormatProperties[EPixelFormat::PF_NUMMAX];
 VulkanDevice::EGpuType VulkanDevice::QueryGPUType()
 {
 	if (mGpuType != EGpuType::Unknown)
@@ -38,20 +41,20 @@ VulkanDevice::EGpuType VulkanDevice::QueryGPUType()
 
 void VulkanDevice::SetupPixelFormatMap()
 {
-	//查询并统计当前设备支持的Format的支持情况
-	for (int32_t index = 0; index < VkFormat::VK_FORMAT_MAX_ENUM; ++index)
-	{
-		const VkFormat format = (VkFormat)index;
-		VkFormatProperties curFormatProperties = {};
-		vkGetPhysicalDeviceFormatProperties(mGpu, format, &curFormatProperties);
-		if ((curFormatProperties.bufferFeatures != 0) || 
-			(curFormatProperties.linearTilingFeatures != 0) || 
-			(curFormatProperties.optimalTilingFeatures != 0))
-		{
-			VkFormatProperties& properties = mFormatProperties[format];
-			properties = curFormatProperties;
-		}
-	}
+	////查询并统计当前设备支持的Format的支持情况
+	//for (int32_t index = 0; index < VkFormat::VK_FORMAT_MAX_ENUM; ++index)
+	//{
+	//	const VkFormat format = (VkFormat)index;
+	//	VkFormatProperties curFormatProperties = {};
+	//	vkGetPhysicalDeviceFormatProperties(mGpu, format, &curFormatProperties);
+	//	if ((curFormatProperties.bufferFeatures != 0) || 
+	//		(curFormatProperties.linearTilingFeatures != 0) || 
+	//		(curFormatProperties.optimalTilingFeatures != 0))
+	//	{
+	//		VkFormatProperties& properties = mFormatProperties[format];
+	//		properties = curFormatProperties;
+	//	}
+	//}
 	//初始化
 	for (int32_t index = 0; index < EPixelFormat::PF_NUMMAX; ++index)
 	{
@@ -67,19 +70,25 @@ void VulkanDevice::SetupPixelFormatMap()
 	}
 
 	//lambda: vkformat supported
-	auto IsVkFormatSupported = [](VkFormat inFormat)
+	auto IsVkFormatSupported = [&](VkFormat inFormat, EPixelFormat inPixelFormat)
 	{
-		if (mFormatProperties.find(inFormat) != mFormatProperties.end())
-		{
-			return true;
-		}
+		VkFormatProperties curFormatProperties = {};
+		vkGetPhysicalDeviceFormatProperties(mGpu, inFormat, &curFormatProperties);
+			if ((curFormatProperties.bufferFeatures != 0) || 
+				(curFormatProperties.linearTilingFeatures != 0) || 
+				(curFormatProperties.optimalTilingFeatures != 0))
+			{
+				VkFormatProperties& properties = mFormatProperties[inPixelFormat];
+				properties = curFormatProperties;
+				return true;
+			}
 		return false;
 	};
 	
 	auto MapSupportedFormat = [&IsVkFormatSupported](EPixelFormat inPixelFormat, VkFormat inVkFormat)
 	{
 		PixelFormatInfo& pixelFormatInfo = VulkanDevice::GPixelFormatsMap[inPixelFormat];
-		pixelFormatInfo.supported = IsVkFormatSupported(inVkFormat);
+		pixelFormatInfo.supported = IsVkFormatSupported(inVkFormat, inPixelFormat);
 		pixelFormatInfo.platformFormat = inVkFormat;
 	};
 	auto FormatComponentMapping = [](EPixelFormat inPixelFormat, VkComponentSwizzle r, VkComponentSwizzle g, VkComponentSwizzle b, VkComponentSwizzle a)
@@ -90,6 +99,10 @@ void VulkanDevice::SetupPixelFormatMap()
 		componentMapping.b = b;
 		componentMapping.a = a;
 	};
+	
+	MapSupportedFormat(PF_R8G8B8A8_SRGB, VK_FORMAT_B8G8R8A8_SRGB);
+	FormatComponentMapping(PF_R8G8B8A8_SRGB, VK_COMPONENT_SWIZZLE_R, VK_COMPONENT_SWIZZLE_G, VK_COMPONENT_SWIZZLE_B, VK_COMPONENT_SWIZZLE_A);
+
 	MapSupportedFormat(PF_B8G8R8A8, VK_FORMAT_B8G8R8A8_UNORM);
 	FormatComponentMapping(PF_B8G8R8A8, VK_COMPONENT_SWIZZLE_R, VK_COMPONENT_SWIZZLE_G, VK_COMPONENT_SWIZZLE_B, VK_COMPONENT_SWIZZLE_A);
 
@@ -375,18 +388,18 @@ void VulkanDevice::CreateDevice()
 }
 
 
-const VkFormatProperties& VulkanDevice::GetPhysicalDeviceFormatProperties(VkFormat inFormat)
-{
-	auto it = mFormatProperties.find(inFormat);
-	if (it != mFormatProperties.end())
-	{
-		return (it->second);
-	}
-	else
-	{
-		VkFormatProperties newVkFormatProperties = {};
-		vkGetPhysicalDeviceFormatProperties(mGpu, inFormat, &newVkFormatProperties);
-		mFormatProperties[inFormat] = newVkFormatProperties;
-		return newVkFormatProperties;
-	}
-}
+//const VkFormatProperties& VulkanDevice::GetPhysicalDeviceFormatProperties(VkFormat inFormat)
+//{
+//	auto it = mFormatProperties.find(inFormat);
+//	if (it != mFormatProperties.end())
+//	{
+//		return (it->second);
+//	}
+//	else
+//	{
+//		VkFormatProperties newVkFormatProperties = {};
+//		vkGetPhysicalDeviceFormatProperties(mGpu, inFormat, &newVkFormatProperties);
+//		mFormatProperties[inFormat] = newVkFormatProperties;
+//		return newVkFormatProperties;
+//	}
+//}

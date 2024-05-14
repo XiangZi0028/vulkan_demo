@@ -27,6 +27,7 @@ include_directories(${VULKAN_PATH}/include ${CMAKE_CURRENT_SOURCE_DIR}/../3rd/gl
 link_directories(${VULKAN_PATH}/lib ${CMAKE_CURRENT_BINARY_DIR}/Bin})
 
 aux_source_directory(${CMAKE_CURRENT_SOURCE_DIR}/private/. VulkanRHI_SOURCE)
+#add_library(VulkanRHI ${VulkanRHI_SOURCE})
 add_library(VulkanRHI STATIC ${VulkanRHI_SOURCE})
 target_link_libraries(VulkanRHI  ${T_RUNTIME_OUTPUT_PATH}/glfw3.lib ${T_RUNTIME_OUTPUT_PATH}/vulkan-1.lib)
 add_executable(VulkanRHI_Test Test.cpp)

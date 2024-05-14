@@ -34,7 +34,7 @@ public:
 	static shared_ptr<VulkanCommandBuffer> Create(shared_ptr<VulkanCommandPool> inCommandPool, VkCommandBufferLevel inCommandBufferLevel = VK_COMMAND_BUFFER_LEVEL_PRIMARY, shared_ptr<VulkanQueue> inQueue = nullptr);
 	void BeginCommandBuffer();
 	void EndCommandBuffer();
-	void SubmitCommandBuffer(VkSemaphore* signalSemaphore = nullptr);
+	void SubmitCommandBuffer(uint32_t signalSemaphoreNum = 0, VkSemaphore* signalSemaphore = nullptr, uint32_t waitSemaphoreNum = 0, VkSemaphore* waitSemaphore = nullptr);
 private:
 	VulkanCommandBuffer(shared_ptr<VulkanDevice> inDevice, shared_ptr<VulkanCommandPool> inCommandPool, VkCommandBufferLevel inCommandBufferLevel, shared_ptr<VulkanQueue> inQueue)
 		: mDevice(inDevice),

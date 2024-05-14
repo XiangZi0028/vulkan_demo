@@ -13,24 +13,27 @@ shared_ptr<VulkanRenderTarget> VulkanRenderTarget::CreateAttachment(EAttachmentT
 	}
 	VkImageUsageFlags attachmentUsage = VK_IMAGE_USAGE_INPUT_ATTACHMENT_BIT | VK_IMAGE_USAGE_SAMPLED_BIT | VK_IMAGE_USAGE_TRANSFER_SRC_BIT;
 	VkImageAspectFlags imageAspect = 0;
+	uint32_t textureCreateFlags = TCF_ShaderResource;
 	switch (inAttachmentType)
 	{
 		case EAttachmentType::Depth:
 		{
 			attachmentUsage |= VK_IMAGE_USAGE_DEPTH_STENCIL_ATTACHMENT_BIT;
 			imageAspect |= VK_IMAGE_ASPECT_DEPTH_BIT;
-			break;
+			textureCreateFlags = textureCreateFlags | TCF_DepthStencilRT;
 		};
 		case EAttachmentType::Stencil:
 		{
 			attachmentUsage |= VK_IMAGE_USAGE_DEPTH_STENCIL_ATTACHMENT_BIT;
 			imageAspect |= VK_IMAGE_ASPECT_STENCIL_BIT;
+			textureCreateFlags = textureCreateFlags | TCF_DepthStencilRT;
 			break;
 		};
 		case EAttachmentType::Color:
 		{
 			attachmentUsage |= VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT;
 			imageAspect |= VK_IMAGE_ASPECT_COLOR_BIT;
+			textureCreateFlags = textureCreateFlags | TCF_RenderTarget;
 			break;
 		};
 		case EAttachmentType::DepthStencil:
@@ -38,19 +41,13 @@ shared_ptr<VulkanRenderTarget> VulkanRenderTarget::CreateAttachment(EAttachmentT
 			attachmentUsage |= VK_IMAGE_USAGE_DEPTH_STENCIL_ATTACHMENT_BIT;
 			imageAspect |= VK_IMAGE_ASPECT_STENCIL_BIT;
 			imageAspect |= VK_IMAGE_ASPECT_DEPTH_BIT;
+			textureCreateFlags = textureCreateFlags | TCF_DepthStencilRT;
 			break;
 		};
-		case EAttachmentType::SwapChain:
-		{
-			attachmentUsage |= VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT;
-			imageAspect |= VK_IMAGE_ASPECT_COLOR_BIT;
-
-			break;
-		}
 		default:
 			break;
 	};
-	TextureDesc rendertarGetDesc = TextureDesc::Create2D(IntPoint2D(inWith, inHeight), inFormat, CleaValue, ETextureCreateFlags::TCF_RenderTarget);
+	TextureDesc rendertarGetDesc = TextureDesc::Create2D(IntPoint2D(inWith, inHeight), inFormat, CleaValue, ETextureCreateFlags(textureCreateFlags));
 	shared_ptr<VulkanImage> newImg = VulkanImage::CreateTexture(rendertarGetDesc, inDevice);
 		//::CreateAttachment(inDevice, inWith, inHeight, inFormat, attachmentUsage, imageAspect);
 	
@@ -61,12 +58,15 @@ shared_ptr<VulkanRenderTarget> VulkanRenderTarget::CreateAttachment(EAttachmentT
 
 VkAttachmentDescription& VulkanRenderTarget::GetAttachmentDescription(bool& bOutDepthStencil)
 {
-	mDesc.format = mImage->GetFormat();
-	mDesc.samples = VK_SAMPLE_COUNT_1_BIT;
+	VkImageCreateInfo imgInfo = mImage->GenerateImageCreateInfo(mImage->GetTextureDesc());
+	mDesc.format = imgInfo.format;
+	mDesc.samples = imgInfo.samples;
+	
 	mDesc.loadOp = VK_ATTACHMENT_LOAD_OP_CLEAR;
 	mDesc.storeOp = VK_ATTACHMENT_STORE_OP_STORE;
 	mDesc.stencilLoadOp = VK_ATTACHMENT_LOAD_OP_DONT_CARE;
 	mDesc.stencilStoreOp = VK_ATTACHMENT_STORE_OP_DONT_CARE;
+
 	mDesc.initialLayout = VK_IMAGE_LAYOUT_UNDEFINED;
 	mDesc.finalLayout = VK_IMAGE_LAYOUT_GENERAL;
 	mDesc.flags = 0;
@@ -81,18 +81,11 @@ VkAttachmentDescription& VulkanRenderTarget::GetAttachmentDescription(bool& bOut
 			mDesc.finalLayout = VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL;
 			break;
 		}
-		case SwapChain:
-		{
-			mDesc.loadOp = VK_ATTACHMENT_LOAD_OP_CLEAR;
-			mDesc.storeOp = VK_ATTACHMENT_STORE_OP_STORE;
-			mDesc.finalLayout = VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL;
-			break;
-		}
 		case Color:
 		{
 			mDesc.loadOp = VK_ATTACHMENT_LOAD_OP_CLEAR;
-			mDesc.storeOp = VK_ATTACHMENT_STORE_OP_DONT_CARE;
-			mDesc.finalLayout = VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL;
+			mDesc.storeOp = VK_ATTACHMENT_STORE_OP_NONE;
+			mDesc.finalLayout = VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL;
 			break;
 		}
 

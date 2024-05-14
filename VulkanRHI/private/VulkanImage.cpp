@@ -1,5 +1,6 @@
 #include <VulkanRHI/public/VulkanImage.h>
 #include <VulkanRHI/public/VulkanDevice.h>
+#include <VulkanBarrierLayout.h>
 #include <vulkan/vulkan.h>
 //Vulkan Image
 VulkanImage::~VulkanImage()
@@ -8,7 +9,7 @@ VulkanImage::~VulkanImage()
 	{
 		if (imgView.second)
 		{
-			imgView.second.reset();
+			delete imgView.second;
 		}
 	}
 	if (mImg != VK_NULL_HANDLE)
@@ -51,25 +52,25 @@ uint32_t VulkanImage::CalcImageLayerCount(VkImageViewType inType, uint32_t inNum
 uint32_t VulkanImage::CalcImageAspectFlagBits(ETextureCreateFlags inTCF)
 {
 	VkImageAspectFlags aspects = (VkImageAspectFlagBits)0;
-	switch (inTCF)
+
+	if (EnumHasAnyFlags(inTCF, ETextureCreateFlags::TCF_RenderTarget |
+		ETextureCreateFlags::TCF_RenderTarget |
+		ETextureCreateFlags::TCF_ResolveTarget |
+		ETextureCreateFlags::TCF_Presentable|
+		ETextureCreateFlags::TCF_SRGB))
 	{
-	case ETextureCreateFlags::TCF_NONE:
-		break;
-	//case ETextureCreateFlags::TCF_ShaderResource:
-	case ETextureCreateFlags::TCF_RenderTarget:
-	case ETextureCreateFlags::TCF_ResolveTarget:
-	case ETextureCreateFlags::TCF_Presentable:
-	case ETextureCreateFlags::TCF_SRGB:
-		aspects = aspects | VK_IMAGE_ASPECT_COLOR_BIT;
-	case ETextureCreateFlags::TCF_DepthStencilRT:
-	case ETextureCreateFlags::TCF_DepthStencilResolveTarget:
-		return  VK_IMAGE_ASPECT_DEPTH_BIT| VK_IMAGE_ASPECT_STENCIL_BIT;
-	default:
-		break;
+		return VK_IMAGE_ASPECT_COLOR_BIT;
 	}
+
+	if (EnumHasAnyFlags(inTCF, ETextureCreateFlags::TCF_DepthStencilRT |
+		ETextureCreateFlags::TCF_DepthStencilResolveTarget))
+	{
+		return VK_IMAGE_ASPECT_DEPTH_BIT | VK_IMAGE_ASPECT_STENCIL_BIT;
+	}
+
 }
 
-shared_ptr<VulkanImageView> VulkanImage::FindOrCreateImageView(uint32_t inFirstMip, uint32_t inNumMips, uint32_t inArraySliceIndex, uint32_t inNumArraySlices, bool bUseIdentitySwizzle)
+VulkanImageView* VulkanImage::FindOrCreateImageView(uint32_t inFirstMip, uint32_t inNumMips, uint32_t inArraySliceIndex, uint32_t inNumArraySlices, bool bUseIdentitySwizzle)
 {
 	ImageViewLayout viewLayout;
 	if (mImgViews.find(viewLayout) != mImgViews.end())
@@ -78,11 +79,11 @@ shared_ptr<VulkanImageView> VulkanImage::FindOrCreateImageView(uint32_t inFirstM
 	}
 	else
 	{
-		mImgViews[viewLayout] = VulkanImageView::Create(mTextureDesc, mDevice, mImg, inFirstMip, inNumMips, inArraySliceIndex, inNumArraySlices, bUseIdentitySwizzle, mImageUsageFlags);
+		return mImgViews[viewLayout] = VulkanImageView::CreateNoShared(mTextureDesc, mDevice, mImg, inFirstMip, inNumMips, inArraySliceIndex, inNumArraySlices, bUseIdentitySwizzle, mImageUsageFlags);
 	}
 }
 
-shared_ptr<VulkanImageView> VulkanImage::FindOrCreateImageView(ImageViewLayout inImageLayout)
+VulkanImageView* VulkanImage::FindOrCreateImageView(ImageViewLayout& inImageLayout)
 {
 	if (mImgViews.find(inImageLayout) != mImgViews.end())
 	{
@@ -90,7 +91,7 @@ shared_ptr<VulkanImageView> VulkanImage::FindOrCreateImageView(ImageViewLayout i
 	}
 	else
 	{
-		mImgViews[inImageLayout] = VulkanImageView::Create(mTextureDesc, mDevice, mImg, mImageUsageFlags);
+		return mImgViews[inImageLayout] = VulkanImageView::CreateNoShared(mTextureDesc, mDevice, mImg, mImageUsageFlags);
 	}
 }
 
@@ -98,7 +99,7 @@ shared_ptr<VulkanImageView> VulkanImage::FindOrCreateImageView(ImageViewLayout i
 void VulkanImage::InitImage()
 {
 	ImageViewLayout defaultImageViewLayout = {};
-	mImgViews[defaultImageViewLayout] = VulkanImageView::Create(mTextureDesc, mDevice, mImg, mImageUsageFlags);
+	mImgViews[defaultImageViewLayout] = VulkanImageView::CreateNoShared(mTextureDesc, mDevice, mImg, mImageUsageFlags);
 };
 
 VkImageCreateInfo VulkanImage::GenerateImageCreateInfo(TextureDesc inTexDesc)
@@ -108,71 +109,52 @@ VkImageCreateInfo VulkanImage::GenerateImageCreateInfo(TextureDesc inTexDesc)
 	outImageUsage |= VK_IMAGE_USAGE_TRANSFER_DST_BIT;
 	outImageUsage |= VK_IMAGE_USAGE_TRANSFER_SRC_BIT;
 	outImageUsage |= VK_IMAGE_USAGE_SAMPLED_BIT;
-	outImageTilling = inTexDesc.bForceLieanerTexture ? VK_IMAGE_TILING_LINEAR : GVulkanViewTypeTilingMode[7];
+	outImageTilling = inTexDesc.bForceLieanerTexture ? VK_IMAGE_TILING_LINEAR : GVulkanViewTypeTilingMode[6];
 	//VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT
-	switch (inTexDesc.mFlags)
+	if (EnumHasAnyFlags(inTexDesc.mFlags, ETextureCreateFlags::TCF_Presentable))
 	{
-		case ETextureCreateFlags::TCF_NONE:
-			break;
-		case ETextureCreateFlags::TCF_Presentable:
-		{
-			outImageUsage |= VK_IMAGE_USAGE_STORAGE_BIT;
-			break;
-		};
-		case ETextureCreateFlags::TCF_RenderTarget:
-		case ETextureCreateFlags::TCF_DepthStencilRT:
-		{
-			if (EnumHasAnyFlags(inTexDesc.mFlags , ETextureCreateFlags::TCF_InputAttachmentRead))
-			{
-				outImageUsage |= VK_IMAGE_USAGE_INPUT_ATTACHMENT_BIT;
-			}
-			outImageUsage |= EnumHasAnyFlags(inTexDesc.mFlags, ETextureCreateFlags::TCF_RenderTarget) ? VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT : VK_IMAGE_USAGE_DEPTH_STENCIL_ATTACHMENT_BIT;
-			outImageUsage |= VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT;
-			break;
-		};
-		case ETextureCreateFlags::TCF_ResolveTarget:
-		{
-			outImageUsage |= VK_IMAGE_USAGE_DEPTH_STENCIL_ATTACHMENT_BIT;
-				break;
-		};
-		case ETextureCreateFlags::TCF_DepthStencilResolveTarget:
-		{
-			outImageUsage |= VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT;
-				break;
-		};
-		case ETextureCreateFlags::TCF_ShaderResource:
-		{
-			outImageUsage |= VK_IMAGE_USAGE_SAMPLED_BIT;
-			break;
-		};
-		case ETextureCreateFlags::TCF_SRGB:
-			break;
-		case ETextureCreateFlags::TCF_CPUWritable:
-		{
-			outImageUsage |= VK_IMAGE_USAGE_ATTACHMENT_FEEDBACK_LOOP_BIT_EXT;
-			break;
-		};
-		case ETextureCreateFlags::TCF_UAV:
-		{
-			break;
-			outImageUsage |=  VK_IMAGE_USAGE_STORAGE_BIT;
-		};
-		default:
-			break;
+		outImageUsage |= VK_IMAGE_USAGE_STORAGE_BIT;
 	}
-
+	if (EnumHasAnyFlags(inTexDesc.mFlags, ETextureCreateFlags::TCF_RenderTarget | ETextureCreateFlags::TCF_DepthStencilRT))
+	{
+		if (EnumHasAnyFlags(inTexDesc.mFlags, ETextureCreateFlags::TCF_InputAttachmentRead))
+		{
+			outImageUsage |= VK_IMAGE_USAGE_INPUT_ATTACHMENT_BIT;
+		}
+		bool test = EnumHasAnyFlags(inTexDesc.mFlags, ETextureCreateFlags::TCF_RenderTarget);
+		outImageUsage |= test ? VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT : VK_IMAGE_USAGE_DEPTH_STENCIL_ATTACHMENT_BIT;
+	}
+	if (EnumHasAnyFlags(inTexDesc.mFlags, ETextureCreateFlags::TCF_ResolveTarget))
+	{
+		outImageUsage |= VK_IMAGE_USAGE_DEPTH_STENCIL_ATTACHMENT_BIT;
+	}
+	if (EnumHasAnyFlags(inTexDesc.mFlags, ETextureCreateFlags::TCF_DepthStencilResolveTarget))
+	{
+		outImageUsage |= VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT;
+	}
+	if (EnumHasAnyFlags(inTexDesc.mFlags, ETextureCreateFlags::TCF_ShaderResource))
+	{
+		outImageUsage |= VK_IMAGE_USAGE_SAMPLED_BIT;
+	}
+		//todo:
+		/*if (EnumHasAnyFlags(inTexDesc.mFlags, ETextureCreateFlags::TCF_SRGB))
+		if (EnumHasAnyFlags(inTexDesc.mFlags, ETextureCreateFlags::TCF_CPUWritable))
+			outImageUsage |= VK_IMAGE_USAGE_ATTACHMENT_FEEDBACK_LOOP_BIT_EXT;
+		if (EnumHasAnyFlags(inTexDesc.mFlags, ETextureCreateFlags::TCF_UAV))*/
+		//	outImageUsage |= VK_IMAGE_USAGE_STORAGE_BIT;
+	
 	VkImageCreateInfo imgCreateInfo;
 	ZeroVulkanStruct(imgCreateInfo, VK_STRUCTURE_TYPE_IMAGE_CREATE_INFO);
 	imgCreateInfo.imageType = VkImageType::VK_IMAGE_TYPE_2D;
 	imgCreateInfo.extent.width = inTexDesc.mExtent.x;
 	imgCreateInfo.extent.height = inTexDesc.mExtent.y;
 	imgCreateInfo.extent.depth = inTexDesc.mDepth;
-	imgCreateInfo.format; //todo //PF to format inTexDesc.mFormat
+	imgCreateInfo.format = VkFormat(VulkanDevice::GPixelFormatsMap[inTexDesc.mFormat].platformFormat); //todo //PF to format inTexDesc.mFormat
 	imgCreateInfo.arrayLayers = inTexDesc.mArraySize;
 	imgCreateInfo.sharingMode = VK_SHARING_MODE_EXCLUSIVE;
 	imgCreateInfo.tiling = outImageTilling;
 	imgCreateInfo.initialLayout = VK_IMAGE_LAYOUT_UNDEFINED;
-	imgCreateInfo.samples = VkSampleCountFlagBits(1 << inTexDesc.mNumSamples);
+	imgCreateInfo.samples = VkSampleCountFlagBits(1 << (inTexDesc.mNumSamples - 1));
 	imgCreateInfo.mipLevels = inTexDesc.mNumMips;
 	imgCreateInfo.usage = outImageUsage;
 	return imgCreateInfo;
@@ -182,6 +164,7 @@ shared_ptr<VulkanImage> VulkanImage::CreateTexture(TextureDesc inTexDesc, shared
 {
 	VkImageCreateInfo imageCerateInfo = GenerateImageCreateInfo(inTexDesc);
 	
+	VkFormatProperties formatProperties = inDevice->mFormatProperties[inTexDesc.mFormat];
 	VkImage newImage = VK_NULL_HANDLE;
 	vkCreateImage(inDevice->GetDevice(), &imageCerateInfo, nullptr, &newImage);
 	//Allocated Memory And Bind Image And Memory 
@@ -236,32 +219,42 @@ shared_ptr<VulkanImageView> VulkanImageView::Create(TextureDesc inDesc, shared_p
 {
 	shared_ptr<VulkanImageView> newImageView(new VulkanImageView(inDesc, inDevice, inImg, inFirstMip, inNumMips, inArraySliceIndex, inNumArraySlices, bUseIdentitySwizzle, inImageUsageFlags));
 	return newImageView;
-	return nullptr;
 }
+
+VulkanImageView* VulkanImageView::CreateNoShared(TextureDesc inDesc, shared_ptr<VulkanDevice> inDevice,
+	VkImage inImg,
+	VkImageUsageFlags inImageUsageFlags,
+	uint32_t inFirstMip, uint32_t inNumMips,
+	uint32_t inArraySliceIndex, uint32_t inNumArraySlices,
+	bool bUseIdentitySwizzle)
+{
+	return new VulkanImageView(inDesc, inDevice, inImg, inFirstMip, inNumMips, inArraySliceIndex, inNumArraySlices, bUseIdentitySwizzle, inImageUsageFlags);
+}
+
 uint8_t VulkanImageView::CalcImageViewType(ETextureDimension inTexDimension)
 {
 	switch (inTexDimension)
 	{
 		case ETextureDimension::Tex1D:
-			return VkImageViewType(ETextureDimension::Tex1D);
+			return VkImageViewType(VkImageViewType::VK_IMAGE_VIEW_TYPE_1D);
 			break;
 		case ETextureDimension::Tex1DArray:
-			return VkImageViewType(ETextureDimension::Tex1DArray);
+			return VkImageViewType(VkImageViewType::VK_IMAGE_VIEW_TYPE_1D_ARRAY);
 			break;
 		case ETextureDimension::Tex2D:
-			return VkImageViewType(ETextureDimension::Tex2D);
+			return VkImageViewType(VkImageViewType::VK_IMAGE_VIEW_TYPE_2D);
 			break;
 		case ETextureDimension::Tex2DArray:
-			return VkImageViewType(ETextureDimension::Tex2DArray);
+			return VkImageViewType(VkImageViewType::VK_IMAGE_VIEW_TYPE_2D_ARRAY);
 			break;
 		case ETextureDimension::Tex3D:
-			return VkImageViewType(ETextureDimension::Tex3D);
+			return VkImageViewType(VkImageViewType::VK_IMAGE_VIEW_TYPE_3D);
 			break;
 		case ETextureDimension::TexCube:
-			return VkImageViewType(ETextureDimension::TexCube);
+			return VkImageViewType(VkImageViewType::VK_IMAGE_VIEW_TYPE_CUBE);
 			break;
 		case ETextureDimension::TexCubeArray:
-			return VkImageViewType(ETextureDimension::TexCubeArray);
+			return VkImageViewType(VkImageViewType::VK_IMAGE_VIEW_TYPE_CUBE_ARRAY);
 			break;
 		default:
 			break;
@@ -270,11 +263,11 @@ uint8_t VulkanImageView::CalcImageViewType(ETextureDimension inTexDimension)
 }
 
 VulkanImageView::VulkanImageView(TextureDesc inDesc, shared_ptr<VulkanDevice> inDevice,
-	VkImage inImg,
+	VkImage  inImg,
 	uint32_t inFirstMip, uint32_t inNumMips,
 	uint32_t inArraySliceIndex, uint32_t inNumArraySlices,
 	bool bUseIdentitySwizzle, VkImageUsageFlags inImageUsageFlags)
-	:mDevice(inDevice)
+	: mDevice(inDevice)
 {
 	auto GetImageViewType = [&inDesc, &inNumArraySlices]()
 	{
@@ -305,8 +298,18 @@ VulkanImageView::VulkanImageView(TextureDesc inDesc, shared_ptr<VulkanDevice> in
 	imageViewCreateInfo.subresourceRange.baseArrayLayer = inArraySliceIndex;
 	imageViewCreateInfo.subresourceRange.layerCount = VulkanImage::CalcImageLayerCount(viewType, inNumArraySlices);
 	imageViewCreateInfo.subresourceRange.aspectMask = VulkanImage::CalcImageAspectFlagBits(inDesc.mFlags);
+	
 	imageViewCreateInfo.viewType = viewType;
-	imageViewCreateInfo.format = inDesc.mResultVkImageCreateInfo.format;
+	imageViewCreateInfo.format = VkFormat(VulkanDevice::GPixelFormatsMap[inDesc.mFormat].platformFormat);
+	imageViewCreateInfo.components = VulkanDevice::GPixelFormatComponentMap[inDesc.mFormat];
+
+	{
+		mSubresourceRange.mBaseArrayLayer = imageViewCreateInfo.subresourceRange.baseArrayLayer;
+		mSubresourceRange.mLayerCount = imageViewCreateInfo.subresourceRange.layerCount;
+		mSubresourceRange.mBaseMipLevel = imageViewCreateInfo.subresourceRange.baseMipLevel;
+		mSubresourceRange.mLevelCount = imageViewCreateInfo.subresourceRange.levelCount;
+		mSubresourceRange.mImageAspect = imageViewCreateInfo.subresourceRange.aspectMask;
+	}
 	if (bUseIdentitySwizzle)
 	{
 		imageViewCreateInfo.components.r = VkComponentSwizzle::VK_COMPONENT_SWIZZLE_IDENTITY;
@@ -320,4 +323,5 @@ VulkanImageView::VulkanImageView(TextureDesc inDesc, shared_ptr<VulkanDevice> in
 	}
 	//imageViewCreateInfo.flags = 
 	vkCreateImageView(inDevice->GetDevice(), &imageViewCreateInfo, nullptr, &mImgView);
+	
 }

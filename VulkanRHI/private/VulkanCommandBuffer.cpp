@@ -105,7 +105,7 @@ void VulkanCommandBuffer::EndCommandBuffer()
 	bIsBegun = false;
 }
 
-void VulkanCommandBuffer::SubmitCommandBuffer(VkSemaphore* signalSemaphore)
+void VulkanCommandBuffer::SubmitCommandBuffer(uint32_t signalSemaphoreNum, VkSemaphore* signalSemaphore, uint32_t waitSemaphoreNum, VkSemaphore* waitSemaphore)
 {
 	//make sure before submit
 	EndCommandBuffer();
@@ -114,11 +114,11 @@ void VulkanCommandBuffer::SubmitCommandBuffer(VkSemaphore* signalSemaphore)
 	submitInfo.commandBufferCount = 1;
 	submitInfo.pCommandBuffers = &mCommandBuffer;
 	submitInfo.pSignalSemaphores = signalSemaphore;
-	submitInfo.signalSemaphoreCount = signalSemaphore ? 1 : 0;
-	submitInfo.pWaitSemaphores = nullptr;
-	submitInfo.waitSemaphoreCount = 0;
+	submitInfo.signalSemaphoreCount = signalSemaphoreNum;
+	submitInfo.pWaitSemaphores = waitSemaphore;
+	submitInfo.waitSemaphoreCount = waitSemaphoreNum;
 	submitInfo.pWaitDstStageMask = nullptr;
 	vkResetFences(mDevice->GetDevice(), 1, &mVkFence);
 	vkQueueSubmit(mVulkanQueue->GetVkQueueRef() , 1, &submitInfo, mVkFence);
-	vkWaitForFences(mDevice->GetDevice(), 1, &mVkFence, true, 60);
+	vkWaitForFences(mDevice->GetDevice(), 1, &mVkFence, true, 1000);
 }

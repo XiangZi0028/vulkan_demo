@@ -102,7 +102,6 @@ void VulkanSwapChain::InitVkSwapChain()
 	swapchainCretaeInfo.presentMode = mPresentMode;
 	swapchainCretaeInfo.imageFormat = mSurfaceFormat.format;
 	swapchainCretaeInfo.imageColorSpace = mSurfaceFormat.colorSpace;
-	//swapchainCretaeInfo.imageExtent = mSurfaceCapabilities.minImageExtent;
 	swapchainCretaeInfo.imageExtent = mSurfaceCapabilities.maxImageExtent;
 	//后面需要考虑显卡是否支持，在选择physicaldevice的时候需要考虑capabilities
 	swapchainCretaeInfo.imageUsage = VK_IMAGE_USAGE_TRANSFER_DST_BIT | VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT | VK_IMAGE_USAGE_SAMPLED_BIT;;
@@ -123,10 +122,23 @@ void VulkanSwapChain::InitVkSwapChain()
 	vkGetSwapchainImagesKHR(mDevice->GetDevice(), mVkSwapChain, &swapChainImgCount, nullptr);
 	imgs.resize(swapChainImgCount);
 	vkGetSwapchainImagesKHR(mDevice->GetDevice(), mVkSwapChain, &swapChainImgCount, imgs.data());
+	auto GetPixelFormatFromPlatformFormat = [](uint32_t inPlatformFormat)
+	{
+		for (auto item : VulkanDevice::GPixelFormatsMap)
+		{
+			if (item.second.platformFormat == inPlatformFormat)
+			{
+				return item.first;
+			}
+		}
+		return EPixelFormat::PF_Unknown;
+	};
+	EPixelFormat surfaceSwapchainPixelFormat = GetPixelFormatFromPlatformFormat(mSurfaceFormat.format);
 	for (auto& image : imgs)
 	{
+		
 		TextureDesc swapChainImgDesc = TextureDesc::Create2D({ int(swapchainCretaeInfo.imageExtent.width), int(swapchainCretaeInfo.imageExtent.height) },
-			EPixelFormat::PF_Unknown,
+			surfaceSwapchainPixelFormat,
 			{ 0, 0, 0, 0,EClearBinding::EColorBound },
 			ETextureCreateFlags::TCF_Presentable,
 			1, 1);
@@ -155,7 +167,7 @@ void VulkanSwapChain::InitVkSwapChain()
 	mPresentID = 0;
 }
 
-void VulkanSwapChain::AcquireNextImage(VkSemaphore* outSemaphore)
+void VulkanSwapChain::AcquireNextImage(VkSemaphore& outSemaphore)
 {
 	uint32_t imageIndex = 0;
 	VkDevice device = mDevice->GetDevice();
@@ -181,7 +193,8 @@ void VulkanSwapChain::AcquireNextImage(VkSemaphore* outSemaphore)
 		mCurSemaphoreIndex = prevSemaphoreIndex;
 	}
 	mCurBackBufferIndex = imageIndex;
-	outSemaphore = &mSemaphores[mCurSemaphoreIndex];
+	
+	outSemaphore = mSemaphores[mCurSemaphoreIndex];
 }
 
 
@@ -197,7 +210,6 @@ void VulkanSwapChain::Present(VkSemaphore inWaitSemaphore)
 	if (inWaitSemaphore)
 	{
 		presentInfo.waitSemaphoreCount = 1;
-
 	}
 	presentInfo.pWaitSemaphores = &inWaitSemaphore;
 	presentInfo.swapchainCount = 1;
@@ -214,6 +226,7 @@ void VulkanSwapChain::Present(VkSemaphore inWaitSemaphore)
 	};
 	shared_ptr<VulkanQueue> presentQueue= GetPresentQueueFamily().value();
 	VkResult presentResult = vkQueuePresentKHR(presentQueue->GetVkQueueRef(), &presentInfo);
+	vkQueueWaitIdle(presentQueue->GetVkQueueRef());
 }
 
 

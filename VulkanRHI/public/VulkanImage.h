@@ -102,7 +102,11 @@ struct TextureDesc
 
 struct ImageViewLayout
 {
-
+	bool operator<(const ImageViewLayout& other) const {
+		return mHashValue < other.mHashValue;
+	}
+private:
+	uint32_t mHashValue;
 };
 
 
@@ -119,9 +123,9 @@ public:
 
 	static uint32_t CalcImageAspectFlagBits(ETextureCreateFlags inTCF);
 
-	shared_ptr<VulkanImageView> FindOrCreateImageView(uint32_t inFirstMip = 0, uint32_t inNumMips = 1, uint32_t inArraySliceIndex = 0, uint32_t inNumArraySlices = 1, bool bUseIdentitySwizzle = true);
+	VulkanImageView* FindOrCreateImageView(uint32_t inFirstMip = 0, uint32_t inNumMips = 1, uint32_t inArraySliceIndex = 0, uint32_t inNumArraySlices = 1, bool bUseIdentitySwizzle = true);
 
-	shared_ptr<VulkanImageView> FindOrCreateImageView(ImageViewLayout imageLayout);
+	VulkanImageView* FindOrCreateImageView(ImageViewLayout& imageLayout);
 
 private:
 	
@@ -133,7 +137,7 @@ private:
 	{
 
 	};
-	typedef std::map<ImageViewLayout, VulkanImageView> ImageViewMap;
+	typedef std::map<ImageViewLayout, VulkanImageView*> ImageViewMap;
 	void InitImage();
 	DefineMemberWithGetter(VkImage, Img);
 	DefineMemberWithGetter(VkDeviceMemory, DeviceMemroy);
@@ -141,13 +145,12 @@ private:
 	DefineMemberWithGetter(shared_ptr<VulkanDevice>, Device);
 	DefineMemberWithGetter(VkFormat, Format);
 	DefineMemberWithGetter(TextureDesc, TextureDesc);
-
+	ETextureBarrierLayout mCurBarrierLayout = ETextureBarrierLayout::TBL_Undefined;
 	//API Param
 	uint32_t mImageUsageFlags = 0;
 
 };
-
-
+struct SubresourceRange;
 class VulkanImageView : public enable_shared_from_this<VulkanImageView>
 {
 public:
@@ -160,6 +163,14 @@ public:
 		uint32_t inArraySliceIndex = 0, uint32_t inNumArraySlices = 1,
 		bool bUseIdentitySwizzle = true);
 	static uint8_t CalcImageViewType(ETextureDimension inTexTureDimension);
+
+	static VulkanImageView* CreateNoShared(TextureDesc inDesc, shared_ptr<VulkanDevice> inDevice,
+		VkImage inImg,
+		VkImageUsageFlags inImageUsageFlags,
+		uint32_t inFirstMip = 0, uint32_t inNumMips = 1,
+		uint32_t inArraySliceIndex = 0, uint32_t inNumArraySlices = 1,
+		bool bUseIdentitySwizzle = true);
+
 private:
 	
 	VulkanImageView(TextureDesc inDesc, shared_ptr<VulkanDevice> inDevice,
@@ -168,8 +179,9 @@ private:
 		uint32_t inArraySliceIndex, uint32_t inNumArraySlices,
 		bool bUseIdentitySwizzle, VkImageUsageFlags inImageUsageFlags);
 
+	DefineMemberWithGetter(VkImage, Img)
+	DefineMemberWithGetter(VkImageView, ImgView)
+	DefineMemberWithGetter(shared_ptr<VulkanDevice>, Device)
+	DefineMemberWithGetter(SubresourceRange,SubresourceRange)
 
-	DefineMemberWithGetter(VkImage, Img);
-	DefineMemberWithGetter(VkImageView, ImgView);
-	DefineMemberWithGetter(shared_ptr<VulkanDevice>, Device);
 };

@@ -43,11 +43,11 @@ public:
 
 	void InitGPU();
 
-	const VkFormatProperties& GetPhysicalDeviceFormatProperties(VkFormat inFormat);
+	//const VkFormatProperties& GetPhysicalDeviceFormatProperties(VkFormat inFormat);
 
 	static std::map<EPixelFormat, PixelFormatInfo>  GPixelFormatsMap;
 	static std::map<EPixelFormat, VkComponentMapping>  GPixelFormatComponentMap;
-	static std::map<VkFormat, VkFormatProperties> mFormatProperties;
+	static VkFormatProperties mFormatProperties[EPixelFormat::PF_NUMMAX];
 
 private:
 	void CreateDevice();
@@ -65,3 +65,5 @@ private:
 	DefineMemberWithGetter(QueueFamilyIndices, QueueFamilyIndices)
 	DefineMemberWithGetter(VulkanQueues, Queues)
 };
+
+
